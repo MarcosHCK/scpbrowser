@@ -45,6 +45,7 @@ SUBDIRS=\
 #
 
 EXTRA_DIST+=\
+  scp_application.h \
   $(VOID)
 
 #
@@ -52,6 +53,7 @@ EXTRA_DIST+=\
 #
 
 bin_PROGRAMS=scpbrowser
+pkglib_LTLIBRARIES=libscpbrowser.la
 
 scpbrowser_SOURCES=\
   scp_main.c \
@@ -61,7 +63,7 @@ scpbrowser_CFLAGS=\
   $(GLIB_CFLAGS) \
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
-  $(GTK_CLAGS) \
+  $(GTK_CFLAGS) \
   -DLOCALEDIR=\"${localedir}\" \
   -DMODULESDIR=\"${modulesdir}\" \
   -DSCHEMASDIR=\"${schemasdir}\" \
@@ -69,9 +71,34 @@ scpbrowser_CFLAGS=\
   -DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\" \
   -DGEXTNAME=\"org-hck-${PACKAGE_NAME}\" \
   -DGRESNAME=\"/org/hck/${PACKAGE_NAME}\" \
-  $(GTK_CFLAGS) \
   $(VOID)
 scpbrowser_LDADD=\
+  $(GIO_LIBS) \
+  $(GLIB_LIBS) \
+  $(GMODULE_LIBS) \
+  $(GOBJECT_LIBS) \
+  $(GTK_LIBS) \
+  libscpbrowser.la \
+  $(VOID)
+
+libscpbrowser_la_SOURCES=\
+  scp_application.c \
+  $(VOID)
+libscpbrowser_la_CFLAGS=\
+  $(GIO_CFLAGS) \
+  $(GLIB_CFLAGS) \
+  $(GMODULE_CFLAGS) \
+  $(GOBJECT_CFLAGS) \
+  $(GTK_CFLAGS) \
+  -DLOCALEDIR=\"${localedir}\" \
+  -DMODULESDIR=\"${modulesdir}\" \
+  -DSCHEMASDIR=\"${schemasdir}\" \
+  -DGAPPNAME=\"org.hck.${PACKAGE_NAME}\" \
+  -DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\" \
+  -DGEXTNAME=\"org-hck-${PACKAGE_NAME}\" \
+  -DGRESNAME=\"/org/hck/${PACKAGE_NAME}\" \
+  $(VOID)
+libscpbrowser_la_LIBADD=\
   $(GIO_LIBS) \
   $(GLIB_LIBS) \
   $(GMODULE_LIBS) \

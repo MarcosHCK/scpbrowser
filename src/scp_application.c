@@ -15,43 +15,48 @@
  * along with scpbrowser.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include <config.h>
 #include <scp_application.h>
 
-int
-main(int argc, char* argv[])
+/*
+ * Object definition
+ *
+ */
+
+struct _ScpApplicationPrivate
 {
-  GApplication* app = NULL;
-  int status = 0;
+  int dummy;
+};
 
-  /*
-   * Application
-   *
-   */
+G_DEFINE_TYPE_WITH_CODE
+(ScpApplication,
+ scp_application,
+ GTK_TYPE_APPLICATION,
+ G_ADD_PRIVATE(ScpApplication)
+ );
 
-  app =
-  scp_application_new (GAPPNAME, 0);
-  if (G_UNLIKELY (app == NULL))
-  {
-    g_critical
-    ("(%s: %i): null instance",
-     G_STRFUNC,
-     __LINE__);
-    g_assert_not_reached ();
-  }
+static void
+scp_application_class_init (ScpApplicationClass* klass)
+{
+}
 
-  status =
-  g_application_run (app, argc, argv);
+static void
+scp_application_init (ScpApplication* self)
+{
+}
 
-  /*
-   * Cleanup
-   *
-   */
+/*
+ * Object methods
+ *
+ */
 
-#if DEBUG == 1
-  g_assert_finalize_object (app);
-#else
-  g_object_unref (app);
-#endif // DEBUG
-return status;
+GApplication*
+scp_application_new (const gchar* application_id, GApplicationFlags flags)
+{
+  return
+  (GApplication*)
+  g_object_new
+  (SCP_TYPE_APPLICATION,
+  "application-id", application_id,
+  "flags", flags,
+  NULL);
 }
