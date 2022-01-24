@@ -40,6 +40,7 @@ VOID=
 #
 
 SUBDIRS=\
+  resources \
   vapi \
   $(VOID)
 
@@ -110,6 +111,7 @@ libscpbrowser_la_LIBADD=\
   $(GMODULE_LIBS) \
   $(GOBJECT_LIBS) \
   $(GTK_LIBS) \
+  resources/libbundle.la \
   $(VOID)
 libscpbrowser_la_LDFLAGS=\
 	-rpath ${pkglibdir} \

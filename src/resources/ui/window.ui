@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 
+
+Copyright (C) Copyright 2021-2025 MarcosHCK
+
+This file is part of scpbrowser.
+
+scpbrowser is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+scpbrowser is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with scpbrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+Author: MarcosHCK
+
+-->
+<interface domain="en_US">
+  <requires lib="gtk+" version="3.24"/>
+  <!-- interface-license-type gplv3 -->
+  <!-- interface-name scpbrowser -->
+  <!-- interface-description ScpWindow -->
+  <!-- interface-copyright Copyright 2021-2025 MarcosHCK -->
+  <!-- interface-authors MarcosHCK -->
+  <object class="GtkWindow">
+    <property name="can-focus">False</property>
+    <property name="default-width">800</property>
+    <property name="default-height">600</property>
+    <child>
+      <placeholder/>
+    </child>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="title" translatable="yes">SCP Browser</property>
+        <property name="subtitle" translatable="yes">SCPNET connection stablished</property>
+        <property name="show-close-button">True</property>
+      </object>
+    </child>
+  </object>
+</interface>
