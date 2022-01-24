@@ -43,6 +43,8 @@ Author: MarcosHCK
      *
     -->
 
+      <file preprocess="xml-stripblanks">ui/message.ui</file>
+      <file preprocess="xml-stripblanks">ui/notebook_page.ui</file>
       <file preprocess="xml-stripblanks">ui/window.ui</file>
 
   </gresource>

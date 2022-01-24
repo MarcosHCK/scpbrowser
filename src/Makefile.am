@@ -69,6 +69,7 @@ scpbrowser_CFLAGS=\
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
   $(GTK_CFLAGS) \
+  $(WEBKIT2_CFLAGS) \
   -DLOCALEDIR=\"${localedir}\" \
   -DMODULESDIR=\"${modulesdir}\" \
   -DSCHEMASDIR=\"${schemasdir}\" \
@@ -83,12 +84,16 @@ scpbrowser_LDADD=\
   $(GMODULE_LIBS) \
   $(GOBJECT_LIBS) \
   $(GTK_LIBS) \
+  $(WEBKIT2_LIBS) \
   libscpbrowser.la \
   $(VOID)
 
 libscpbrowser_la_SOURCES=\
   scp_application.vala \
   scp_browser.c \
+  scp_message.vala \
+  scp_notebook_page.vala \
+  scp_notebook_tab.vala \
   scp_window.vala \
   $(VOID)
 libscpbrowser_la_CFLAGS=\

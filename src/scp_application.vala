@@ -20,8 +20,48 @@ namespace Scp
 {
   public class Application : Gtk.Application, GLib.Initable
   {
-    private Scp.Browser? browser = null;
+    private Scp.Browser? _browser = null;
     private Scp.Window? window = null;
+
+    public Scp.Browser browser {
+      get {
+        return _browser;
+      }
+    private set {
+        _browser = value;
+      }}
+
+    /*
+     * Signals
+     *
+     */
+
+    private void on_parsing_error(Gtk.CssProvider provider,
+                                  Gtk.CssSection section,
+                                  GLib.Error error)
+    {
+      var file_ = section.get_file ();
+      unowned string file = null;
+
+      if (file_ != null)
+        file = file_.peek_path ();
+      else
+        file = "string";
+
+      var message = @"CSS parsing error:\r\n"
+                  + @" - file: $file\r\n"
+                  + @" - line: $(section.get_start_line())\r\n"
+                  + @" - column: $(section.get_start_position())\r\n"
+                  + @" - type: $(section.get_section_type())\r\n"
+                  + @" - from: $(error.domain)\r\n"
+                  + @" - code: $(error.code)\r\n"
+                  + @"\r\n\r\n"
+                  + @"$(error.message)\r\n";
+
+      var dialog = new Scp.Message.error (message);
+      ((Gtk.Dialog) dialog).run ();
+      ((Gtk.Widget) dialog).destroy ();
+    }
 
     /*
      * Overrides
@@ -31,12 +71,19 @@ namespace Scp
     public bool init (GLib.Cancellable? cancellable = null) throws GLib.Error
     {
       browser = new Scp.Browser ();
+      var provider = new Gtk.CssProvider();
+      provider.parsing_error.connect (on_parsing_error);
+      provider.load_from_resource (Config.GRESNAME + "/css/gtk.css");
+      Gtk.StyleContext.add_provider_for_screen
+      (Gdk.Screen.get_default (),
+       (Gtk.StyleProvider) provider,
+       Gtk.STYLE_PROVIDER_PRIORITY_USER);
     return false;
     }
 
     public override void activate ()
     {
-      GLib.File home = GLib.File.new_for_uri ("scpbrowser://home");
+      GLib.File home = GLib.File.new_for_uri ("scpbrowser:///home");
       GLib.File[] vector = new GLib.File[1] {home};
       this.open (vector, "url");
     }
@@ -52,15 +99,7 @@ namespace Scp
 
       foreach (var file in files)
       {
-        try
-        {
-          window.open (file, hint);
-        }
-        catch (GLib.Error e)
-        {
-          critical (@"$(e.domain): $(e.code): $(e.message)\r\n");
-          assert_not_reached ();
-        }
+        window.try_open (file.get_uri ());
       }
     }
 

@@ -23,6 +23,8 @@ int
 main(int argc, char* argv[])
 {
   GApplication* app = NULL;
+  gboolean success = TRUE;
+  GError* tmp_err = NULL;
   int status = 0;
 
   /*
@@ -38,6 +40,21 @@ main(int argc, char* argv[])
     ("(%s: %i): null application",
      G_STRFUNC,
      __LINE__);
+    g_assert_not_reached ();
+  }
+
+  success =
+  g_initable_init (G_INITABLE (app), NULL, &tmp_err);
+  if (G_UNLIKELY (tmp_err != NULL))
+  {
+    g_critical
+    ("(%s: %i): %s: %i: %s",
+     G_STRFUNC,
+     __LINE__,
+     g_quark_to_string (tmp_err->domain),
+     tmp_err->code,
+     tmp_err->message);
+    g_error_free (tmp_err);
     g_assert_not_reached ();
   }
 

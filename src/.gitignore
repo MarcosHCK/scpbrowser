@@ -30,6 +30,7 @@ libscpbrowser.so*
 libscpbrowser-*.so*
 
 scp_application.c
-scp_browser_application.c
-scp_launcher_application.c
+scp_message.c
+scp_notebook_page.c
+scp_notebook_tab.c
 scp_window.c

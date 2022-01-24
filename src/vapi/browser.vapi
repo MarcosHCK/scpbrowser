@@ -22,5 +22,6 @@ namespace Scp
   public class Browser : GLib.Object, GLib.Initable
   {
     public Browser (GLib.Cancellable? cancellable = null) throws GLib.Error;
+    public WebKit.WebView create_view();
   }
 }

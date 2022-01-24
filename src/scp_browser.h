@@ -18,6 +18,7 @@
 #ifndef __SCP_BROWSER__
 #define __SCP_BROWSER__ 1
 #include <gio/gio.h>
+#include <webkit2/webkit2.h>
 
 #define SCP_BROWSER_ERROR (scp_browser_error_quark ())
 
@@ -48,6 +49,8 @@ scp_browser_get_type (void) G_GNUC_CONST;
 
 ScpBrowser*
 scp_browser_new (GCancellable* cancellable, GError** error);
+WebKitWebView*
+scp_browser_create_view (ScpBrowser* browser);
 
 #if __cplusplus
 }

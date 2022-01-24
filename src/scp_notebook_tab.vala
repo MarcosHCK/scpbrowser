@@ -16,15 +16,25 @@
  *
  */
 
-label.link_label
+namespace Scp
 {
-  background-color: #181a1b;
-  border-top-right-radius: 5px;
-  padding-top: 2px;
-  padding-right: 2px;
-}
+  public class NotebookTab : Gtk.Label
+  {
+    /*
+     * Constructors
+     *
+     */
 
-button.tab_close
-{
-  border-radius: 10px;
+    public NotebookTab ()
+    {
+      Object ();
+      this.visible = true;
+    }
+
+    public NotebookTab.with_label (string title)
+    {
+      this ();
+      label = title;
+    }
+  }
 }

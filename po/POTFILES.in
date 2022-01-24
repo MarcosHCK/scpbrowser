@@ -1,3 +1,5 @@
 # List of source files which contain translatable strings.
+src/resources/ui/message.ui
 src/resources/ui/window.ui
-src/scp_main.c
+src/scp_message.vala
+src/scp_window.vala

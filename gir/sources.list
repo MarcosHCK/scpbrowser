@@ -1,3 +1,6 @@
 ../src/scp_application.c
 ../src/scp_browser.c
+../src/scp_browser.h
+../src/scp_message.c
+../src/scp_window.c
 ../src/libscpbrowser.h

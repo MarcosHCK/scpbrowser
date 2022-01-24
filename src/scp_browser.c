@@ -17,7 +17,6 @@
  */
 #include <config.h>
 #include <scp_browser.h>
-#include <webkit2/webkit2.h>
 
 G_DEFINE_QUARK
 (scp-browser-error-quark,
@@ -309,4 +308,28 @@ scp_browser_new (GCancellable* cancellable, GError** error)
    cancellable,
    error,
    NULL);
+}
+
+WebKitWebView*
+scp_browser_create_view (ScpBrowser* browser)
+{
+  g_return_val_if_fail (SCP_IS_BROWSER (browser), NULL);
+  gboolean is_ephemeral = FALSE;
+
+  g_object_get
+  (browser->website_data,
+   "is-ephemeral", &is_ephemeral,
+   NULL);
+
+  return
+  (WebKitWebView*)
+  g_object_ref_sink
+  (g_object_new
+   (WEBKIT_TYPE_WEB_VIEW,
+    "automation-presentation-type", WEBKIT_AUTOMATION_BROWSING_CONTEXT_PRESENTATION_TAB,
+    "is-ephemeral", is_ephemeral,
+    "settings", browser->settings,
+    "user-content-manager", browser->user_content,
+    "web-context", browser->context,
+    NULL));
 }

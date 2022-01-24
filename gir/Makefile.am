@@ -47,6 +47,7 @@ GIR_PKG=\
 	gmodule-2.0 \
 	gobject-2.0 \
 	gtk+-3.0 \
+	webkit2gtk-4.0 \
 	$(VOID)
 
 GIR_INC=\
