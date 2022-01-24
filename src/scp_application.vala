@@ -18,14 +18,21 @@
 
 namespace Scp
 {
-  public class Application : Gtk.Application
+  public class Application : Gtk.Application, GLib.Initable
   {
+    private Scp.Browser? browser = null;
     private Scp.Window? window = null;
 
     /*
      * Overrides
      *
      */
+
+    public bool init (GLib.Cancellable? cancellable = null) throws GLib.Error
+    {
+      browser = new Scp.Browser ();
+    return false;
+    }
 
     public override void activate ()
     {

@@ -1,2 +1,3 @@
 ../src/scp_application.c
+../src/scp_browser.c
 ../src/libscpbrowser.h
