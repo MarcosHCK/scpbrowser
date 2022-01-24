@@ -15,52 +15,20 @@
  * along with scpbrowser.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include <scp_application.h>
 
-G_DEFINE_QUARK
-(scp-application-error-quark,
- scp_application_error);
-
-/*
- * Object definition
- *
- */
-
-struct _ScpApplicationPrivate
+namespace Scp
 {
-  int dummy;
-};
+  public class LaucherApplication : Gtk.Application, Scp.Application
+  {
+    public override void activate ()
+    {
+      print ("activated launcher\r\n");
+      this.hold ();
+    }
 
-G_DEFINE_TYPE_WITH_CODE
-(ScpApplication,
- scp_application,
- GTK_TYPE_APPLICATION,
- G_ADD_PRIVATE(ScpApplication)
- );
-
-static void
-scp_application_class_init (ScpApplicationClass* klass)
-{
-}
-
-static void
-scp_application_init (ScpApplication* self)
-{
-}
-
-/*
- * Object methods
- *
- */
-
-GApplication*
-scp_application_new (const gchar* application_id, GApplicationFlags flags)
-{
-  return
-  (GApplication*)
-  g_object_new
-  (SCP_TYPE_APPLICATION,
-  "application-id", application_id,
-  "flags", flags,
-  NULL);
+    public LaucherApplication (string application_id, GLib.ApplicationFlags flags)
+    {
+      Object (application_id : application_id, flags : flags);
+    }
+  }
 }

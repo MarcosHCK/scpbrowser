@@ -16,25 +16,62 @@
  *
  */
 #include <config.h>
-#include <scp_application.h>
+#include <gio/gio.h>
+#include <libscpbrowser.h>
 
 int
 main(int argc, char* argv[])
 {
   GApplication* app = NULL;
   int status = 0;
+  pid_t child;
+
+  child = fork ();
+  if (G_UNLIKELY (child == -1))
+  {
+    char* errmsg;
+    int err;
+
+    err = errno;
+    errmsg = strerror (err);
+
+    g_critical
+    ("(%s: %i): %s",
+     G_STRFUNC,
+     __LINE__,
+     errmsg);
+    free (errmsg);
+    g_assert_not_reached ();
+  } else
+  if (child == 0)
+  {
+    app =
+    scp_browser_application_new
+    (GAPPNAME,
+     G_APPLICATION_IS_SERVICE);
+  }
+  else
+  {
+    /*
+     * I am your father!
+     *
+     */
+
+    app =
+    scp_laucher_application_new
+    (GAPPNAME,
+     G_APPLICATION_IS_LAUNCHER);
+  }
 
   /*
-   * Application
+   * Execution
    *
    */
 
-  app =
-  scp_application_new (GAPPNAME, 0);
   if (G_UNLIKELY (app == NULL))
   {
     g_critical
-    ("(%s: %i): null instance",
+    ("(%s: %i): null application",
      G_STRFUNC,
      __LINE__);
     g_assert_not_reached ();

@@ -85,7 +85,9 @@ scpbrowser_LDADD=\
   $(VOID)
 
 libscpbrowser_la_SOURCES=\
-  scp_application.c \
+  scp_application.vala \
+  scp_browser_application.vala \
+  scp_launcher_application.vala \
   $(VOID)
 libscpbrowser_la_CFLAGS=\
   $(GIO_CFLAGS) \
@@ -100,6 +102,7 @@ libscpbrowser_la_CFLAGS=\
   -DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\" \
   -DGEXTNAME=\"org-hck-${PACKAGE_NAME}\" \
   -DGRESNAME=\"/org/hck/${PACKAGE_NAME}\" \
+  -D__LIBSCPBROWSER_INSIDE__=1 \
   $(VOID)
 libscpbrowser_la_LIBADD=\
   $(GIO_LIBS) \
@@ -108,6 +111,11 @@ libscpbrowser_la_LIBADD=\
   $(GOBJECT_LIBS) \
   $(GTK_LIBS) \
   $(VOID)
+libscpbrowser_la_LDFLAGS=\
+	-rpath ${pkglibdir} \
+	-release ${PACKAGE_RELEASE} \
+	-version-info ${PACKAGE_VERSION_MAYOR}:${PACKAGE_VERSION_MINOR}:${PACKAGE_VERSION_MICRO} \
+	$(VOID)
 
 #
 # Vala
@@ -115,10 +123,13 @@ libscpbrowser_la_LIBADD=\
 
 AM_VALAFLAGS=\
   --vapidir=vapi/ \
+  --vapi-comments \
   --hide-internal \
   --abi-stability \
+  --header libscpbrowser.h \
+  --library libscpbrowser \
   --pkg config \
-  --pkg hcl \
+  --pkg scp \
   -D DEBUG=${DEBUG} \
   -D DEVELOPER=${DEVELOPER} \
   --gresources "${top_builddir}/src/resources/resources.gresources.xml" \

@@ -24,4 +24,11 @@
 *.Tpo
 
 scpbrowser
+libscpbrowser.h
+libscpbrowser.vapi
 libscpbrowser.so*
+libscpbrowser-*.so*
+
+scp_application.c
+scp_browser_application.c
+scp_launcher_application.c
