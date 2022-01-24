@@ -18,35 +18,8 @@
 
 namespace Scp
 {
-  public class LaucherApplication : Gtk.Application, Scp.Application
+  [GtkTemplate (ui = "/org/hck/scpbrowser/ui/window.ui")]
+  public class Window : Gtk.Window
   {
-    private List<Scp.Window> toplevels;
-
-    /*
-     * Signals
-     *
-     */
-
-    public override void activate ()
-    {
-      var window = new Scp.Window ();
-      window.set_application (this);
-      window.present ();
-    }
-
-    /*
-     * Constructors
-     *
-     */
-
-    construct
-    {
-      this.toplevels = new List<Scp.Window> ();
-    }
-
-    public LaucherApplication (string application_id, GLib.ApplicationFlags flags)
-    {
-      Object (application_id : application_id, flags : flags);
-    }
   }
 }

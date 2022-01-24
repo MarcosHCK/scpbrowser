@@ -89,6 +89,7 @@ libscpbrowser_la_SOURCES=\
   scp_application.vala \
   scp_browser_application.vala \
   scp_launcher_application.vala \
+  scp_window.vala \
   $(VOID)
 libscpbrowser_la_CFLAGS=\
   $(GIO_CFLAGS) \

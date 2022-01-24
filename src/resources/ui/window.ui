@@ -28,7 +28,7 @@ Author: MarcosHCK
   <!-- interface-description ScpWindow -->
   <!-- interface-copyright Copyright 2021-2025 MarcosHCK -->
   <!-- interface-authors MarcosHCK -->
-  <object class="GtkWindow">
+  <template class="ScpWindow" parent="GtkWindow">
     <property name="can-focus">False</property>
     <property name="default-width">800</property>
     <property name="default-height">600</property>
@@ -44,5 +44,5 @@ Author: MarcosHCK
         <property name="show-close-button">True</property>
       </object>
     </child>
-  </object>
+  </template>
 </interface>
