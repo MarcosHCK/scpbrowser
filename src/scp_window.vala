@@ -21,5 +21,24 @@ namespace Scp
   [GtkTemplate (ui = "/org/hck/scpbrowser/ui/window.ui")]
   public class Window : Gtk.Window
   {
+    /*
+     * API
+     *
+     */
+
+    public bool open (GLib.File file, string hint) throws GLib.Error
+    {
+      return false;
+    }
+
+    /*
+     * Constructors
+     *
+     */
+
+    public Window ()
+    {
+      Object ();
+    }
   }
 }

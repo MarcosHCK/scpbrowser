@@ -18,8 +18,57 @@
 
 namespace Scp
 {
-  [DBus (name = "org.hck.scpbrowser")]
-  public interface Application : GLib.Object
+  public class Application : Gtk.Application
   {
+    private Scp.Window? window = null;
+
+    /*
+     * Overrides
+     *
+     */
+
+    public override void activate ()
+    {
+      GLib.File home = GLib.File.new_for_uri ("scpbrowser://home");
+      GLib.File[] vector = new GLib.File[1] {home};
+      this.open (vector, "url");
+    }
+
+    public override void open (GLib.File[] files, string hint)
+    {
+      if (unlikely (window == null))
+      {
+        window = new Scp.Window ();
+        window.set_application (this);
+        window.present ();
+      }
+
+      foreach (var file in files)
+      {
+        try
+        {
+          window.open (file, hint);
+        }
+        catch (GLib.Error e)
+        {
+          critical (@"$(e.domain): $(e.code): $(e.message)\r\n");
+          assert_not_reached ();
+        }
+      }
+    }
+
+    /*
+     * Constructors
+     *
+     */
+
+    construct
+    {
+    }
+
+    public Application (string application_id, GLib.ApplicationFlags flags)
+    {
+      Object (application_id : application_id, flags : flags);
+    }
   }
 }
