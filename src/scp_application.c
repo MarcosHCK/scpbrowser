@@ -17,6 +17,10 @@
  */
 #include <scp_application.h>
 
+G_DEFINE_QUARK
+(scp-application-error-quark,
+ scp_application_error);
+
 /*
  * Object definition
  *

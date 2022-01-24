@@ -18,6 +18,9 @@
 # Keep sync with settings/Makefile.am
 schemasdir=${pkgdatadir}/schemas
 
+# Keep sync with src/Makefile.am
+girdir=${pkgdatadir}/gir/
+
 #
 # Some variables
 #

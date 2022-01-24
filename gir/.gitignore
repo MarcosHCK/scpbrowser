@@ -14,16 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with scpbrowser. If not, see <http://www.gnu.org/licenses/>.
 #
-ACLOCAL_AMFLAGS=-I m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS=\
-	src \
-	settings \
-	gir \
-	po
+#
+# GObject introspection files
+#
 
-EXTRA_DIST=\
-	config.rpath
-
-code:
-	code ${top_builddir}
+*.gir
+*.typelib

@@ -84,6 +84,7 @@ AC_PROG_RANLIB
 AM_PROG_VALAC
 
 PKG_PROG_PKG_CONFIG
+GOBJECT_INTROSPECTION_REQUIRE([1.68.0])
 
 AC_CHECK_PROG([GLIB_GENMARSHAL], [glib-genmarshal], [glib-genmarshal], [no])
 if test "x$GLIB_GENMARSHAL" = "xno"; then
@@ -189,6 +190,7 @@ AC_CONFIG_FILES([
 settings/Makefile
 src/vapi/Makefile
 src/Makefile
+gir/Makefile
 po/Makefile.in
 Makefile
 ])
