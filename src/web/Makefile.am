@@ -34,7 +34,7 @@ VOID=
 #
 
 RESOURCES=\
-	$(shell $(GLIB_COMPILE_RESOURCES) --generate-dependencies resources.gresources.xml) \
+	$(shell $(GLIB_COMPILE_RESOURCES) --generate-dependencies web.gresources.xml) \
 	$(VOID)
 
 EXTRA_DIST+=\
@@ -50,10 +50,10 @@ CLEANFILES=\
 # *.gresources.xml to *.c and *.h make target
 #
 
-resources.c: resources.gresources.xml $(RESOURCES)
+resources.c: web.gresources.xml $(RESOURCES)
 	$(GLIB_COMPILE_RESOURCES) --target=$@ --generate-source $<
 
-resources.h: resources.gresources.xml $(RESOURCES)
+resources.h: web.gresources.xml $(RESOURCES)
 	$(GLIB_COMPILE_RESOURCES) --target=$@ --generate-header $<
 
 #

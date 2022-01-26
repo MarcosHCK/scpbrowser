@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (C) 2021-2025 MarcosHCK
+
+This file is part of scpbrowser.
+
+scpbrowser is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+scpbrowser is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with scpbrowser. If not, see <http://www.gnu.org/licenses/>.
+
+Author: MarcosHCK
+-->
+<gresources>
+  <gresource prefix="/org/hck/scpbrowser/">
+
+    <!--
+     *
+     * Pages
+     *
+    -->
+
+      <file preprocess="xml-stripblanks">html/home.html</file>
+
+    <!--
+     *
+     * Style sheets
+     *
+    -->
+
+      <file>css/builtin.css</file>
+      <file>css/jquery-ui.css</file>
+      <file compressed="true">css/images/ui-bg_highlight-hard_55_555555_1x100.png</file>
+      <file compressed="true">css/images/ui-bg_gloss-wave_16_121212_500x100.png</file>
+      <file compressed="true">css/images/ui-icons_f29a00_256x240.png</file>
+      <file compressed="true">css/images/ui-icons_cccccc_256x240.png</file>
+      <file compressed="true">css/images/ui-bg_highlight-soft_60_dddddd_1x100.png</file>
+      <file compressed="true">css/images/ui-icons_aaaaaa_256x240.png</file>
+      <file compressed="true">css/images/ui-icons_c98000_256x240.png</file>
+      <file compressed="true">css/images/ui-bg_highlight-soft_35_adadad_1x100.png</file>
+      <file compressed="true">css/images/ui-bg_highlight-hard_15_888888_1x100.png</file>
+      <file compressed="true">css/images/ui-bg_inset-soft_15_121212_1x100.png</file>
+      <file compressed="true">css/images/ui-icons_777777_256x240.png</file>
+      <file compressed="true">css/images/ui-icons_cd0a0a_256x240.png</file>
+      <file compressed="true">css/images/ui-icons_666666_256x240.png</file>
+      <file compressed="true">css/images/ui-bg_glass_95_fef1ec_1x400.png</file>
+
+    <!--
+     *
+     * JavaScript scripts
+     *
+    -->
+
+      <file>js/builtin.js</file>
+      <file>js/jquery.js</file>
+      <file>js/jquery-ui.js</file>
+
+    <!--
+     *
+     * Miscellaneous resources
+     *
+    -->
+
+  </gresource>
+</gresources>

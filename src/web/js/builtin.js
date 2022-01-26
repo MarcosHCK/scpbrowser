@@ -15,14 +15,3 @@
  * along with scpbrowser.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-namespace Scp
-{
-  [CCode (cheader_filename = "scp_browser.h")]
-  public class Browser : GLib.Object, GLib.Initable
-  {
-    public Browser (GLib.Cancellable? cancellable = null) throws GLib.Error;
-    public WebKit.WebView create_view();
-    public void add_resource (GLib.Resource resource);
-  }
-}

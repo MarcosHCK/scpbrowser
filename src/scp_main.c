@@ -17,7 +17,15 @@
  */
 #include <config.h>
 #include <gio/gio.h>
+#include <web/resources.h>
 #include <libscpbrowser.h>
+
+void
+pointer_ensure (gpointer pobject)
+{
+  if (G_UNLIKELY (pobject == NULL))
+    g_error ("Erghh?");
+}
 
 int
 main(int argc, char* argv[])
@@ -26,6 +34,13 @@ main(int argc, char* argv[])
   gboolean success = TRUE;
   GError* tmp_err = NULL;
   int status = 0;
+
+  /*
+   * Ensure things
+   *
+   */
+
+  pointer_ensure (web_get_resource ());
 
   /*
    * Execute

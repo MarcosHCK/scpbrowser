@@ -41,6 +41,7 @@ VOID=
 
 SUBDIRS=\
   resources \
+  web \
   vapi \
   $(VOID)
 
@@ -86,6 +87,7 @@ scpbrowser_LDADD=\
   $(GTK_LIBS) \
   $(WEBKIT2_LIBS) \
   libscpbrowser.la \
+  web/libbundle.la \
   $(VOID)
 
 libscpbrowser_la_SOURCES=\

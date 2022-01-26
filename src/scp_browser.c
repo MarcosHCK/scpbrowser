@@ -67,95 +67,18 @@ G_DEFINE_TYPE_WITH_CODE
  (G_TYPE_INITABLE,
   scp_browser_g_initable_iface_init));
 
-static GInputStream*
-on_uri_scheme_request_scpbrowser_ (WebKitURISchemeRequest* request, ScpBrowser* self, gsize* plength, GError** error)
-{
-  GInputStream* stream = NULL;
-  GError* tmp_err = NULL;
-  gboolean success = FALSE;
-  gchar* path = NULL;
-  gsize length = 0;
-
-  path =
-  g_path_get_basename (webkit_uri_scheme_request_get_path (request));
-  if (!strcmp (path, "home"))
-  {
-    GBytes* bytes =
-    g_resources_lookup_data (GRESNAME "/html/home.html", 0, &tmp_err);
-    if G_LIKELY (tmp_err == NULL)
-    {
-      stream = g_memory_input_stream_new_from_bytes (bytes);
-      length = g_bytes_get_size (bytes);
-      _g_bytes_unref0 (bytes);
-    }
-    else
-    {
-      g_propagate_error (error, tmp_err);
-      goto_error ();
-    }
-  } else
-  if (!strcmp (path, "settings"))
-  {
-    GBytes* bytes =
-    g_resources_lookup_data(GRESNAME "/html/settings.html", 0, &tmp_err);
-    if G_LIKELY (tmp_err == NULL)
-    {
-      stream = g_memory_input_stream_new_from_bytes (bytes);
-      length = g_bytes_get_size (bytes);
-      _g_bytes_unref0 (bytes);
-    }
-    else
-    {
-      g_propagate_error (error, tmp_err);
-      goto_error ();
-    }
-  } else
-  if (!strcmp (path, "about"))
-  {
-    GBytes* bytes =
-    g_resources_lookup_data (GRESNAME "/html/about.html", 0, &tmp_err);
-    if G_LIKELY (tmp_err == NULL)
-    {
-      stream = g_memory_input_stream_new_from_bytes (bytes);
-      length = g_bytes_get_size (bytes);
-      _g_bytes_unref0 (bytes);
-    }
-    else
-    {
-      g_propagate_error (error, tmp_err);
-      goto_error ();
-    }
-  }
-  else
-  {
-    g_set_error
-    (error,
-     SCP_BROWSER_ERROR,
-     SCP_BROWSER_ERROR_INVALID_PAGE,
-     "Invalid page '%s' requested",
-     webkit_uri_scheme_request_get_uri
-     (request));
-    goto_error ();
-  }
-
-_error_:
-  *plength = length;
-  if (G_UNLIKELY (success == FALSE))
-    _g_object_unref0(stream);
-  _g_free0 (path);
-return stream;
-}
-
 static void
-on_uri_scheme_request_scpbrowser (WebKitURISchemeRequest* request, gpointer pself)
+on_uri_scheme_request_resource (WebKitURISchemeRequest* request, const gchar* path, gpointer pself)
 {
-  ScpBrowser* self = SCP_BROWSER(pself);
-  GInputStream* stream = NULL;
   GError* tmp_err = NULL;
-  gsize length = 0;
+  GBytes* bytes = NULL;
+  gchar* fullpath = NULL;
 
-  stream =
-  on_uri_scheme_request_scpbrowser_ (request, self, &length, &tmp_err);
+  fullpath =
+  g_build_filename (GRESNAME, path, NULL);
+
+  bytes =
+  g_resources_lookup_data (fullpath, G_RESOURCE_FLAGS_NONE, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
   {
     webkit_uri_scheme_request_finish_error (request, tmp_err);
@@ -163,13 +86,34 @@ on_uri_scheme_request_scpbrowser (WebKitURISchemeRequest* request, gpointer psel
   }
   else
   {
-    webkit_uri_scheme_request_finish (request, stream, length, "text/html");
-    _g_object_unref0 (stream);
+    if (G_LIKELY (bytes != NULL))
+    {
+      GInputStream* stream = NULL;
+      gsize length = 0;
+
+      stream = g_memory_input_stream_new_from_bytes (bytes);
+      length = g_bytes_get_size (bytes);
+      webkit_uri_scheme_request_finish (request, stream, length, "text/html");
+      _g_object_unref0 (stream);
+    }
+    else
+    {
+      g_set_error
+      (&tmp_err,
+       G_RESOURCE_ERROR,
+       G_RESOURCE_ERROR_NOT_FOUND,
+       "The resource \"%s\" does not exist",
+       fullpath);
+      webkit_uri_scheme_request_finish_error (request, tmp_err);
+      _g_error_free0 (tmp_err);
+    }
   }
+
+  _g_free0 (fullpath);
 }
 
 static void
-on_uri_scheme_request_resources (WebKitURISchemeRequest* request, gpointer pobj)
+on_uri_scheme_request_resources (WebKitURISchemeRequest* request, gpointer pself)
 {
   GInputStream* stream = NULL;
   const gchar* path = NULL;
@@ -179,23 +123,41 @@ on_uri_scheme_request_resources (WebKitURISchemeRequest* request, gpointer pobj)
 
   path =
   webkit_uri_scheme_request_get_path(request);
+  on_uri_scheme_request_resource (request, path, pself);
+}
 
-  bytes =
-  g_resources_lookup_data(path, 0, &tmp_err);
-  if G_LIKELY(tmp_err == NULL)
-  {
-    stream = g_memory_input_stream_new_from_bytes(bytes);
-    length = g_bytes_get_size(bytes);
-    _g_bytes_unref0(bytes);
+static void
+on_uri_scheme_request_scpbrowser (WebKitURISchemeRequest* request, gpointer pself)
+{
+  ScpBrowser* self = SCP_BROWSER(pself);
+  gboolean success = TRUE;
+  GError* tmp_err = NULL;
+  gchar* path = NULL;
 
-    webkit_uri_scheme_request_finish(request, stream, length, NULL);
-    _g_object_unref0 (stream);
-  }
+  path =
+  g_path_get_basename (webkit_uri_scheme_request_get_path (request));
+  if (g_strcmp0 (path, "home") == 0)
+    on_uri_scheme_request_resource (request, "html/home.html", pself);
+  else
+  if (g_strcmp0 (path, "settings") == 0)
+    on_uri_scheme_request_resource (request, "html/settings.html", pself);
+  else
+  if (g_strcmp0 (path, "about") == 0)
+    on_uri_scheme_request_resource (request, "html/about.html", pself);
   else
   {
-    webkit_uri_scheme_request_finish_error(request, tmp_err);
+    g_set_error
+    (&tmp_err,
+     SCP_BROWSER_ERROR,
+     SCP_BROWSER_ERROR_INVALID_PAGE,
+     "Invalid page '%s' requested",
+     webkit_uri_scheme_request_get_uri
+     (request));
+    webkit_uri_scheme_request_finish_error (request, tmp_err);
     _g_error_free0 (tmp_err);
   }
+
+  _g_free0 (path);
 }
 
 static gboolean
@@ -243,15 +205,15 @@ scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancella
 
   webkit_web_context_register_uri_scheme
   (self->context,
-   "scpbrowser",
-   on_uri_scheme_request_scpbrowser,
+   "resources",
+   on_uri_scheme_request_resources,
    self,
    NULL);
 
   webkit_web_context_register_uri_scheme
   (self->context,
-   "resources",
-   on_uri_scheme_request_resources,
+   "scpbrowser",
+   on_uri_scheme_request_scpbrowser,
    self,
    NULL);
 
