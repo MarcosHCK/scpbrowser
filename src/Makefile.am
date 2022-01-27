@@ -50,7 +50,7 @@ SUBDIRS=\
 #
 
 EXTRA_DIST+=\
-  scp_application.h \
+  scp_browser_internl.h \
   scp_browser.h \
   $(VOID)
 
@@ -70,6 +70,7 @@ scpbrowser_CFLAGS=\
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
   $(GTK_CFLAGS) \
+  $(LIBSASS_CFLAGS) \
   $(WEBKIT2_CFLAGS) \
   -DLOCALEDIR=\"${localedir}\" \
   -DMODULESDIR=\"${modulesdir}\" \
@@ -85,6 +86,7 @@ scpbrowser_LDADD=\
   $(GMODULE_LIBS) \
   $(GOBJECT_LIBS) \
   $(GTK_LIBS) \
+  $(LIBSASS_LIBS) \
   $(WEBKIT2_LIBS) \
   libscpbrowser.la \
   web/libbundle.la \
@@ -92,6 +94,7 @@ scpbrowser_LDADD=\
 
 libscpbrowser_la_SOURCES=\
   scp_application.vala \
+  scp_browser_scss.c \
   scp_browser.c \
   scp_message.vala \
   scp_notebook_page.vala \
@@ -104,6 +107,7 @@ libscpbrowser_la_CFLAGS=\
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
   $(GTK_CFLAGS) \
+  $(LIBSASS_CFLAGS) \
   $(WEBKIT2_CFLAGS) \
   -DLOCALEDIR=\"${localedir}\" \
   -DMODULESDIR=\"${modulesdir}\" \
@@ -120,6 +124,7 @@ libscpbrowser_la_LIBADD=\
   $(GMODULE_LIBS) \
   $(GOBJECT_LIBS) \
   $(GTK_LIBS) \
+  $(LIBSASS_LIBS) \
   $(WEBKIT2_LIBS) \
   resources/libbundle.la \
   $(VOID)

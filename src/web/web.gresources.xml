@@ -28,6 +28,7 @@ Author: MarcosHCK
      *
     -->
 
+      <file preprocess="xml-stripblanks">html/about.html</file>
       <file preprocess="xml-stripblanks">html/home.html</file>
 
     <!--
@@ -36,22 +37,8 @@ Author: MarcosHCK
      *
     -->
 
-      <file>css/builtin.css</file>
-      <file>css/jquery-ui.css</file>
-      <file compressed="true">css/images/ui-bg_highlight-hard_55_555555_1x100.png</file>
-      <file compressed="true">css/images/ui-bg_gloss-wave_16_121212_500x100.png</file>
-      <file compressed="true">css/images/ui-icons_f29a00_256x240.png</file>
-      <file compressed="true">css/images/ui-icons_cccccc_256x240.png</file>
-      <file compressed="true">css/images/ui-bg_highlight-soft_60_dddddd_1x100.png</file>
-      <file compressed="true">css/images/ui-icons_aaaaaa_256x240.png</file>
-      <file compressed="true">css/images/ui-icons_c98000_256x240.png</file>
-      <file compressed="true">css/images/ui-bg_highlight-soft_35_adadad_1x100.png</file>
-      <file compressed="true">css/images/ui-bg_highlight-hard_15_888888_1x100.png</file>
-      <file compressed="true">css/images/ui-bg_inset-soft_15_121212_1x100.png</file>
-      <file compressed="true">css/images/ui-icons_777777_256x240.png</file>
-      <file compressed="true">css/images/ui-icons_cd0a0a_256x240.png</file>
-      <file compressed="true">css/images/ui-icons_666666_256x240.png</file>
-      <file compressed="true">css/images/ui-bg_glass_95_fef1ec_1x400.png</file>
+      <file>css/builtin.scss</file>
+      <file>css/theme.scss</file>
 
     <!--
      *
@@ -61,13 +48,15 @@ Author: MarcosHCK
 
       <file>js/builtin.js</file>
       <file>js/jquery.js</file>
-      <file>js/jquery-ui.js</file>
 
     <!--
      *
      * Miscellaneous resources
      *
     -->
+
+      <file>res/logo_symbolic.svg</file>
+      <file>res/marble.png</file>
 
   </gresource>
 </gresources>

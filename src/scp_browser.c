@@ -16,7 +16,7 @@
  *
  */
 #include <config.h>
-#include <scp_browser.h>
+#include <scp_browser_internl.h>
 
 G_DEFINE_QUARK
 (scp-browser-error-quark,
@@ -25,39 +25,10 @@ G_DEFINE_QUARK
 static void
 scp_browser_g_initable_iface_init (GInitableIface* iface);
 
-#define goto_error() \
-  G_STMT_START { \
-    success = FALSE; \
-    goto _error_; \
-  } G_STMT_END
-
-#define _webkit_user_style_sheet_unref0(var) ((var == NULL) ? NULL : (var = (webkit_user_style_sheet_unref (var), NULL)))
-#define _webkit_user_script_unref0(var) ((var == NULL) ? NULL : (var = (webkit_user_script_unref (var), NULL)))
-#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-#define _g_bytes_unref0(var) ((var == NULL) ? NULL : (var = (g_bytes_unref (var), NULL)))
-#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
-#define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
-
 /*
  * Object definition
  *
  */
-
-struct _ScpBrowser
-{
-  GObject parent_instance;
-
-  /*<private>*/
-  WebKitWebContext* context;
-  WebKitSettings* settings;
-  WebKitUserContentManager* user_content;
-  WebKitWebsiteDataManager* website_data;
-};
-
-struct _ScpBrowserClass
-{
-  GObjectClass parent_class;
-};
 
 G_DEFINE_TYPE_WITH_CODE
 (ScpBrowser,
@@ -73,12 +44,16 @@ on_uri_scheme_request_resource (WebKitURISchemeRequest* request, const gchar* pa
   GError* tmp_err = NULL;
   GBytes* bytes = NULL;
   gchar* fullpath = NULL;
+  gchar* mimetype = NULL;
+  gchar* data = NULL;
 
-  fullpath =
-  g_build_filename (GRESNAME, path, NULL);
+  if (g_str_has_prefix (path, GRESNAME) == FALSE)
+    fullpath = g_build_filename (GRESNAME, path, NULL);
+  else
+    fullpath = g_strdup (path);
 
   bytes =
-  g_resources_lookup_data (fullpath, G_RESOURCE_FLAGS_NONE, &tmp_err);
+  g_resources_lookup_data (fullpath, G_RESOURCE_LOOKUP_FLAGS_NONE, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
   {
     webkit_uri_scheme_request_finish_error (request, tmp_err);
@@ -92,9 +67,11 @@ on_uri_scheme_request_resource (WebKitURISchemeRequest* request, const gchar* pa
       gsize length = 0;
 
       stream = g_memory_input_stream_new_from_bytes (bytes);
-      length = g_bytes_get_size (bytes);
-      webkit_uri_scheme_request_finish (request, stream, length, "text/html");
+      data = g_bytes_get_data (bytes, &length);
+      mimetype = g_content_type_guess (fullpath, (const guchar*) data, length, NULL);
+      webkit_uri_scheme_request_finish (request, stream, length, mimetype);
       _g_object_unref0 (stream);
+      _g_free0 (mimetype);
     }
     else
     {
@@ -115,15 +92,84 @@ on_uri_scheme_request_resource (WebKitURISchemeRequest* request, const gchar* pa
 static void
 on_uri_scheme_request_resources (WebKitURISchemeRequest* request, gpointer pself)
 {
-  GInputStream* stream = NULL;
   const gchar* path = NULL;
-  GBytes* bytes = NULL;
-  GError* tmp_err = NULL;
-  gsize length = 0;
 
   path =
   webkit_uri_scheme_request_get_path(request);
   on_uri_scheme_request_resource (request, path, pself);
+}
+
+static void
+on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
+{
+  ScpBrowser* self = SCP_BROWSER(pself);
+  GInputStream* stream = NULL;
+  const gchar* path = NULL;
+  const gchar* data = NULL;
+  gboolean success = TRUE;
+  GError* tmp_err = NULL;
+  GBytes* bytes = NULL;
+  gsize length = 0;
+
+  path =
+  webkit_uri_scheme_request_get_path(request);
+
+  do
+  {
+    success =
+    g_hash_table_lookup_extended (self->scsses, path, NULL, (gpointer*) &bytes);
+    if (G_UNLIKELY (success == FALSE))
+    {
+      bytes =
+      g_resources_lookup_data (path, G_RESOURCE_LOOKUP_FLAGS_NONE, &tmp_err);
+      if (G_UNLIKELY (tmp_err != NULL))
+      {
+        webkit_uri_scheme_request_finish_error (request, tmp_err);
+        _g_bytes_unref0 (bytes);
+        _g_error_free0 (tmp_err);
+        break;
+      }
+      else
+      {
+        data = (const gchar*)
+        g_bytes_get_data (bytes, &length);
+
+        bytes =
+        _scp_browser_compile_scss (self, data, path, &tmp_err);
+        if (G_UNLIKELY (tmp_err != NULL))
+        {
+          g_warning
+          ("(%s: %i): %s: %i: %s",
+           G_STRFUNC,
+           __LINE__,
+           g_quark_to_string (tmp_err->domain),
+           tmp_err->code,
+           tmp_err->message);
+          webkit_uri_scheme_request_finish_error (request, tmp_err);
+          _g_bytes_unref0 (bytes);
+          _g_error_free0 (tmp_err);
+          break;
+        }
+        else
+        {
+          g_hash_table_insert
+          (self->scsses,
+           g_strdup (path),
+           g_bytes_ref (bytes));
+          _g_bytes_unref0 (bytes);
+        }
+      }
+    }
+    else
+    {
+      stream = g_memory_input_stream_new_from_bytes (bytes);
+      length = g_bytes_get_size (bytes);
+
+      webkit_uri_scheme_request_finish (request, stream, length, "text/html");
+      _g_object_unref0 (stream);
+    }
+  }
+  while (success == FALSE);
 }
 
 static void
@@ -212,6 +258,13 @@ scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancella
 
   webkit_web_context_register_uri_scheme
   (self->context,
+   "scss",
+   on_uri_scheme_request_scss,
+   self,
+   NULL);
+
+  webkit_web_context_register_uri_scheme
+  (self->context,
    "scpbrowser",
    on_uri_scheme_request_scpbrowser,
    self,
@@ -231,6 +284,8 @@ static void
 scp_browser_class_finalize (GObject* pself)
 {
   ScpBrowser* self = SCP_BROWSER (pself);
+  g_hash_table_remove_all (self->scsses);
+  g_hash_table_unref (self->scsses);
 G_OBJECT_CLASS (scp_browser_parent_class)->finalize (pself);
 }
 
@@ -238,6 +293,7 @@ static void
 scp_browser_class_dispose (GObject* pself)
 {
   ScpBrowser* self = SCP_BROWSER (pself);
+  g_hash_table_remove_all (self->scsses);
 G_OBJECT_CLASS (scp_browser_parent_class)->dispose (pself);
 }
 
@@ -253,6 +309,18 @@ scp_browser_class_init (ScpBrowserClass* klass)
 static void
 scp_browser_init (ScpBrowser* self)
 {
+  /*
+   * Compiled SCSS files cache
+   *
+   */
+
+  self->scsses =
+  g_hash_table_new_full
+  (g_str_hash,
+   g_str_equal,
+   g_free,
+   (GDestroyNotify)
+   g_bytes_unref);
 }
 
 /*

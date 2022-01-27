@@ -48,6 +48,7 @@ main(int argc, char* argv[])
    */
 
   app =
+  (GApplication*)
   scp_application_new (GAPPNAME, G_APPLICATION_HANDLES_OPEN);
   if (G_UNLIKELY (app == NULL))
   {

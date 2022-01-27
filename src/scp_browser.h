@@ -26,6 +26,7 @@ typedef enum
 {
   SCP_BROWSER_ERROR_FAILED,
   SCP_BROWSER_ERROR_INVALID_PAGE,
+  SCP_BROWSER_ERROR_SASS_COMPILING,
 } ScpBrowserError;
 
 #define SCP_TYPE_BROWSER (scp_browser_get_type ())
