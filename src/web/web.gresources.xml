@@ -37,6 +37,7 @@ Author: MarcosHCK
      *
     -->
 
+      <file>css/about.scss</file>
       <file>css/builtin.scss</file>
       <file>css/theme.scss</file>
 

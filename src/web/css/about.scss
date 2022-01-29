@@ -18,65 +18,22 @@
  */
 @import "theme.scss";
 
-%flexbox
+div.scp-copying
 {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}
+  position: absolute;
+  right: 2.4%;
+  top: 2.4%;
 
-body
-{
-  @extend %theme-div;
-  display: block;
-}
+  border-radius: 7px;
+  @extend %theme-button;
 
-div.scp-container
-{
-  @extend %flexbox;
-
-  div.scp-navigation-headerbar
+  a
   {
-    @extend %flexbox;
-    justify-content: start;
-    position: relative;
-    height: fit-content;
-    width: 100%;
+    @extend %theme-link;
 
-    h1
-    {
-      margin: 0px;
-    }
-
-    h2
-    {
-      margin: 0px;
-    }
-
-    a.scp-black-link
-    {
-      @extend %theme-link;
-    }
-
-    img.scp-logo
+    p
     {
       margin: 5px;
-    }
-  }
-
-  div.scp-content-wrapper
-  {
-    @extend %flexbox;
-    padding: 5%;
-
-    div.scp-purpose
-    {
-      width: 70%;
-      border-radius: 5px;
-      background: url(resources:///res/marble.png) repeat;
-      padding: 20px;
-      text-shadow: 1px 1px 1px rgba(0,0,0,.25);
-      color: #333;
     }
   }
 }

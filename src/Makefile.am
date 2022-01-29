@@ -72,6 +72,7 @@ scpbrowser_CFLAGS=\
   $(GOBJECT_CFLAGS) \
   $(GTK_CFLAGS) \
   $(LIBSASS_CFLAGS) \
+  $(LIBSOUP_CFLAGS) \
   $(WEBKIT2_CFLAGS) \
   -DGIRDIR=\"${girdir}\" \
   -DLOCALEDIR=\"${localedir}\" \
@@ -90,6 +91,7 @@ scpbrowser_LDADD=\
   $(GOBJECT_LIBS) \
   $(GTK_LIBS) \
   $(LIBSASS_LIBS) \
+  $(LIBSOUP_LIBS) \
   $(WEBKIT2_LIBS) \
   libscpbrowser.la \
   web/libbundle.la \

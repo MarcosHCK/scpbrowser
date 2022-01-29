@@ -119,19 +119,25 @@ on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
   gboolean success = TRUE;
   GError* tmp_err = NULL;
   GBytes* bytes = NULL;
+  gchar* fullpath = NULL;
   gsize length = 0;
 
   path =
-  webkit_uri_scheme_request_get_path(request);
+  webkit_uri_scheme_request_get_path (request);
+
+  if (g_str_has_prefix (path, GRESNAME) == FALSE)
+    fullpath = g_build_filename (GRESNAME, path, NULL);
+  else
+    fullpath = g_strdup (path);
 
   do
   {
     success =
-    g_hash_table_lookup_extended (self->scsses, path, NULL, (gpointer*) &bytes);
+    g_hash_table_lookup_extended (self->scsses, fullpath, NULL, (gpointer*) &bytes);
     if (G_UNLIKELY (success == FALSE))
     {
       bytes =
-      g_resources_lookup_data (path, G_RESOURCE_LOOKUP_FLAGS_NONE, &tmp_err);
+      g_resources_lookup_data (fullpath, G_RESOURCE_LOOKUP_FLAGS_NONE, &tmp_err);
       if (G_UNLIKELY (tmp_err != NULL))
       {
         webkit_uri_scheme_request_finish_error (request, tmp_err);
@@ -145,7 +151,7 @@ on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
         g_bytes_get_data (bytes, &length);
 
         bytes =
-        _scp_browser_compile_scss (self, data, path, &tmp_err);
+        _scp_browser_compile_scss (self, data, fullpath, &tmp_err);
         if (G_UNLIKELY (tmp_err != NULL))
         {
           g_warning
@@ -164,7 +170,7 @@ on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
         {
           g_hash_table_insert
           (self->scsses,
-           g_strdup (path),
+           g_strdup (fullpath),
            g_bytes_ref (bytes));
           _g_bytes_unref0 (bytes);
         }
@@ -180,6 +186,8 @@ on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
     }
   }
   while (success == FALSE);
+
+  _g_free0 (fullpath);
 }
 
 static void
