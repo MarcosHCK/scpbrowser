@@ -50,6 +50,10 @@ scp_browser_get_type (void) G_GNUC_CONST;
 
 ScpBrowser*
 scp_browser_new (GCancellable* cancellable, GError** error);
+void
+scp_browser_set_sanboxed (ScpBrowser* browser, gboolean sandboxed);
+gboolean
+scp_browser_get_sanboxed (ScpBrowser* browser);
 WebKitWebView*
 scp_browser_create_view (ScpBrowser* browser);
 

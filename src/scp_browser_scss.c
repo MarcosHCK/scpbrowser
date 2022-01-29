@@ -45,7 +45,7 @@ resources_importer (const char* url, Sass_Importer_Entry cb, struct Sass_Compile
   else
   {
     list = sass_make_import_list (1);
-    data = g_bytes_get_data (bytes, &length);
+    data = (gchar*) g_bytes_get_data (bytes, &length);
     data = sass_copy_c_string (data);
     list[0] = sass_make_import_entry (path, data, 0);
   }

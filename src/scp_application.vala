@@ -20,8 +20,10 @@ namespace Scp
 {
   public class Application : Gtk.Application, GLib.Initable
   {
-    private Scp.Browser? _browser = null;
-    private Scp.Window? window = null;
+    private Scp.Browser _browser = null;
+    private Scp.Window window = null;
+    private Scp.Settings settings = null;
+    private GLib.Settings gsettings = null;
 
     public Scp.Browser browser {
       get {
@@ -70,6 +72,19 @@ namespace Scp
 
     public bool init (GLib.Cancellable? cancellable = null) throws GLib.Error
     {
+      /*
+       * Settings
+       *
+       */
+
+      settings = new Scp.Settings (cancellable);
+      gsettings = settings.get_settings (Config.GAPPNAME);
+    
+      /*
+       * Load theme patch
+       *
+       */
+
       browser = new Scp.Browser ();
       var provider = new Gtk.CssProvider();
       provider.parsing_error.connect (on_parsing_error);
@@ -78,6 +93,13 @@ namespace Scp
       (Gdk.Screen.get_default (),
        (Gtk.StyleProvider) provider,
        Gtk.STYLE_PROVIDER_PRIORITY_USER);
+
+      /*
+       * Apply settings
+       *
+       */
+
+      gsettings.bind ("use-sandbox", browser, "sandboxed", GLib.SettingsBindFlags.DEFAULT);
     return false;
     }
 

@@ -30,6 +30,16 @@ scp_browser_g_initable_iface_init (GInitableIface* iface);
  *
  */
 
+enum
+{
+  prop_0,
+  prop_sandboxed,
+  prop_number,
+};
+
+static
+GParamSpec* properties[prop_number] = {0};
+
 G_DEFINE_TYPE_WITH_CODE
 (ScpBrowser,
  scp_browser,
@@ -67,7 +77,7 @@ on_uri_scheme_request_resource (WebKitURISchemeRequest* request, const gchar* pa
       gsize length = 0;
 
       stream = g_memory_input_stream_new_from_bytes (bytes);
-      data = g_bytes_get_data (bytes, &length);
+      data = (gchar*) g_bytes_get_data (bytes, &length);
       mimetype = g_content_type_guess (fullpath, (const guchar*) data, length, NULL);
       webkit_uri_scheme_request_finish (request, stream, length, mimetype);
       _g_object_unref0 (stream);
@@ -206,6 +216,41 @@ on_uri_scheme_request_scpbrowser (WebKitURISchemeRequest* request, gpointer psel
   _g_free0 (path);
 }
 
+static void
+on_initialize_web_extensions (WebKitWebContext* context, ScpBrowser* browser)
+{
+  GVariantBuilder builder = {0};
+  GVariant* variant = NULL;
+
+  /*
+   * Set extensio path
+   *
+   */
+
+#if DEVELOPER == 1
+  webkit_web_context_set_web_extensions_directory (context, ABSTOPBUILDDIR "/src/extension/.libs/");
+#else // !DEVELOPER
+  webkit_web_context_set_web_extensions_directory(context, PKGLIBDIR);
+#endif // DEVELOPER
+
+  /*
+   * Add extension data
+   *
+   */
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&builder, "{sv}", "key", g_variant_new_string ("value"));
+
+  /*
+   * Send extension data
+   *
+   */
+
+  variant =
+  g_variant_builder_end (&builder);
+  webkit_web_context_set_web_extensions_initialization_user_data (context, variant);
+}
+
 static gboolean
 scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancellable, GError** error)
 {
@@ -270,6 +315,12 @@ scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancella
    self,
    NULL);
 
+  g_signal_connect
+  (self->context,
+   "initialize-web-extensions",
+   G_CALLBACK (on_initialize_web_extensions),
+   self);
+
 _error_:
 return success;
 }
@@ -278,6 +329,36 @@ static void
 scp_browser_g_initable_iface_init (GInitableIface* iface)
 {
   iface->init = scp_browser_g_initable_iface_init_sync;
+}
+
+static void
+scp_browser_class_set_property (GObject* pself, guint prop_id, const GValue* value, GParamSpec* pspec)
+{
+  ScpBrowser* self = SCP_BROWSER (pself);
+  switch (prop_id)
+  {
+  case prop_sandboxed:
+    scp_browser_set_sanboxed (self, g_value_get_boolean (value));
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (pself, prop_id, pspec);
+    break;
+  }
+}
+
+static void
+scp_browser_class_get_property (GObject* pself, guint prop_id, GValue* value, GParamSpec* pspec)
+{
+  ScpBrowser* self = SCP_BROWSER (pself);
+  switch (prop_id)
+  {
+  case prop_sandboxed:
+    g_value_set_boolean (value, scp_browser_get_sanboxed (self));
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (pself, prop_id, pspec);
+    break;
+  }
 }
 
 static void
@@ -302,8 +383,25 @@ scp_browser_class_init (ScpBrowserClass* klass)
 {
   GObjectClass* oclass = G_OBJECT_CLASS (klass);
 
+  oclass->set_property = scp_browser_class_set_property;
+  oclass->get_property = scp_browser_class_get_property;
   oclass->finalize = scp_browser_class_finalize;
   oclass->dispose = scp_browser_class_dispose;
+
+  properties[prop_sandboxed] =
+    g_param_spec_boolean
+    ("sandboxed",
+     "sandboxed",
+     "sandboxed",
+     FALSE,
+     G_PARAM_READWRITE
+     | G_PARAM_CONSTRUCT
+     | G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties
+  (oclass,
+   prop_number,
+   properties);
 }
 
 static void
@@ -338,6 +436,22 @@ scp_browser_new (GCancellable* cancellable, GError** error)
    cancellable,
    error,
    NULL);
+}
+
+void
+scp_browser_set_sanboxed (ScpBrowser* browser, gboolean sandboxed)
+{
+  g_return_if_fail (SCP_IS_BROWSER (browser));
+  g_return_if_fail (WEBKIT_IS_WEB_CONTEXT (browser->context));
+  webkit_web_context_set_sandbox_enabled (browser->context, sandboxed);
+}
+
+gboolean
+scp_browser_get_sanboxed (ScpBrowser* browser)
+{
+  g_return_val_if_fail (SCP_IS_BROWSER (browser), FALSE);
+  g_return_val_if_fail (WEBKIT_IS_WEB_CONTEXT (browser->context), FALSE);
+return webkit_web_context_get_sandbox_enabled (browser->context);
 }
 
 WebKitWebView*

@@ -20,7 +20,7 @@ Author: MarcosHCK
 -->
 <schemalist>
   <schema path="/org/hck/scpbrowser/" id="org.hck.scpbrowser">
-    <key name="dummy" type="b">
+    <key name="use-sandbox" type="b">
       <default>false</default>
     </key>
   </schema>

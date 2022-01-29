@@ -33,4 +33,5 @@ scp_application.c
 scp_message.c
 scp_notebook_page.c
 scp_notebook_tab.c
+scp_settings.c
 scp_window.c

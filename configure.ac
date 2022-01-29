@@ -190,6 +190,7 @@ AC_C_INLINE
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 settings/Makefile
+src/extension/Makefile
 src/resources/Makefile
 src/web/Makefile
 src/vapi/Makefile

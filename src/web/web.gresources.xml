@@ -55,6 +55,8 @@ Author: MarcosHCK
      *
     -->
 
+      <file alias="res/authors">../../AUTHORS</file>
+      <file alias="res/copying">../../COPYING</file>
       <file>res/logo_symbolic.svg</file>
       <file>res/marble.png</file>
 

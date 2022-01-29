@@ -40,6 +40,7 @@ VOID=
 #
 
 SUBDIRS=\
+  extension \
   resources \
   web \
   vapi \
@@ -72,9 +73,11 @@ scpbrowser_CFLAGS=\
   $(GTK_CFLAGS) \
   $(LIBSASS_CFLAGS) \
   $(WEBKIT2_CFLAGS) \
+  -DGIRDIR=\"${girdir}\" \
   -DLOCALEDIR=\"${localedir}\" \
   -DMODULESDIR=\"${modulesdir}\" \
   -DSCHEMASDIR=\"${schemasdir}\" \
+  -DPKGLIBDIR=\"${pkglibdir}\" \
   -DGAPPNAME=\"org.hck.${PACKAGE_NAME}\" \
   -DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\" \
   -DGEXTNAME=\"org-hck-${PACKAGE_NAME}\" \
@@ -99,6 +102,7 @@ libscpbrowser_la_SOURCES=\
   scp_message.vala \
   scp_notebook_page.vala \
   scp_notebook_tab.vala \
+  scp_settings.vala \
   scp_window.vala \
   $(VOID)
 libscpbrowser_la_CFLAGS=\
@@ -109,9 +113,12 @@ libscpbrowser_la_CFLAGS=\
   $(GTK_CFLAGS) \
   $(LIBSASS_CFLAGS) \
   $(WEBKIT2_CFLAGS) \
+  -DABSTOPBUILDDIR=\"${abs_top_builddir}\" \
+  -DGIRDIR=\"${girdir}\" \
   -DLOCALEDIR=\"${localedir}\" \
   -DMODULESDIR=\"${modulesdir}\" \
   -DSCHEMASDIR=\"${schemasdir}\" \
+  -DPKGLIBDIR=\"${pkglibdir}\" \
   -DGAPPNAME=\"org.hck.${PACKAGE_NAME}\" \
   -DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\" \
   -DGEXTNAME=\"org-hck-${PACKAGE_NAME}\" \
