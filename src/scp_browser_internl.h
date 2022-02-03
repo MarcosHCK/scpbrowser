@@ -41,6 +41,7 @@ struct _ScpBrowser
   GObject parent_instance;
 
   /*<private>*/
+  GHashTable* jhtmls;
   GHashTable* scsses;
 
   /*<private>*/
@@ -57,7 +58,10 @@ struct _ScpBrowserClass
 
 G_GNUC_INTERNAL
 GBytes*
-_scp_browser_compile_scss (ScpBrowser* self, const gchar* input, const gchar* path, GError** error);
+_scp_browser_compile_scss (ScpBrowser* self, GBytes* input, const gchar* path, GError** error);
+G_GNUC_INTERNAL
+GBytes*
+_scp_browser_compile_jhtml (ScpBrowser* self, GBytes* input, const gchar* path, GError** error);
 
 #if __cplusplus
 }

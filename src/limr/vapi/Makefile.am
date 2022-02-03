@@ -34,8 +34,6 @@ VOID=
 #
 
 EXTRA_DIST+=\
-  browser.vapi \
   config.vapi \
-  scp.deps \
-  scp.vapi \
+  config.deps \
   $(VOID)

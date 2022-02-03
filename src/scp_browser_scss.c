@@ -61,7 +61,7 @@ Sass_Importer_Fn importers[] =
 
 G_GNUC_INTERNAL
 GBytes*
-_scp_browser_compile_scss (ScpBrowser* self, const gchar* input, const gchar* path, GError** error)
+_scp_browser_compile_scss (ScpBrowser* self, GBytes* input_, const gchar* path, GError** error)
 {
   struct Sass_Data_Context* dctx = NULL;
   struct Sass_Context* ctx = NULL;
@@ -70,6 +70,7 @@ _scp_browser_compile_scss (ScpBrowser* self, const gchar* input, const gchar* pa
   Sass_Importer_Entry entry = NULL;
   gsize importern = G_N_ELEMENTS (importers);
   const gchar* output = NULL;
+  const gchar* input = NULL;
   gboolean success = TRUE;
   GError* tmp_err = NULL;
   GBytes* bytes = NULL;
@@ -83,6 +84,7 @@ _scp_browser_compile_scss (ScpBrowser* self, const gchar* input, const gchar* pa
    *
    */
 
+  input = g_bytes_get_data(input_, NULL);
   data = sass_copy_c_string (input);
   dctx = sass_make_data_context (data);
   ctx = sass_data_context_get_context (dctx);

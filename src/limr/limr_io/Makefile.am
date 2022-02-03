@@ -30,12 +30,51 @@ EXTRA_DIST=
 VOID=
 
 #
-# vapis
+# Resources
 #
 
+RESOURCES=\
+	$(shell $(GLIB_COMPILE_RESOURCES) --generate-dependencies limr_io.gresources.xml) \
+	$(VOID)
+
 EXTRA_DIST+=\
-  browser.vapi \
-  config.vapi \
-  scp.deps \
-  scp.vapi \
-  $(VOID)
+	$(RESOURCES) \
+	$(VOID)
+	
+CLEANFILES=\
+	resources.c \
+	resources.h \
+	$(VOID)
+
+#
+# *.gresources.xml to *.c and *.h make target
+#
+
+resources.c: limr_io.gresources.xml $(RESOURCES)
+	$(GLIB_COMPILE_RESOURCES) --target=$@ --generate-source $<
+
+resources.h: limr_io.gresources.xml $(RESOURCES)
+	$(GLIB_COMPILE_RESOURCES) --target=$@ --generate-header $<
+
+#
+# Binaries and libraries
+#
+
+noinst_LTLIBRARIES=libbundle.la
+
+noinst_DATA=\
+	resources.h \
+	$(VOID)
+
+libbundle_la_SOURCES=\
+	resources.c \
+	$(VOID)
+libbundle_la_CFLAGS=\
+	$(GIO_CFLAGS) \
+	$(VOID)
+libbundle_la_LIBADD=\
+	$(GIO_LIBS) \
+	$(VOID)
+libbundle_la_LDFLAGS=\
+	-static \
+	$(VOID)

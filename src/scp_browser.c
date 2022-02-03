@@ -110,9 +110,10 @@ on_uri_scheme_request_resources (WebKitURISchemeRequest* request, gpointer pself
 }
 
 static void
-on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
+on_uri_scheme_request_jhtml (WebKitURISchemeRequest* request, gpointer pself)
 {
   ScpBrowser* self = SCP_BROWSER(pself);
+  GHashTable* cache = self->jhtmls;
   GInputStream* stream = NULL;
   const gchar* path = NULL;
   const gchar* data = NULL;
@@ -133,7 +134,7 @@ on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
   do
   {
     success =
-    g_hash_table_lookup_extended (self->scsses, fullpath, NULL, (gpointer*) &bytes);
+    g_hash_table_lookup_extended (cache, fullpath, NULL, (gpointer*) &bytes);
     if (G_UNLIKELY (success == FALSE))
     {
       bytes =
@@ -147,11 +148,8 @@ on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
       }
       else
       {
-        data = (const gchar*)
-        g_bytes_get_data (bytes, &length);
-
         bytes =
-        _scp_browser_compile_scss (self, data, fullpath, &tmp_err);
+        _scp_browser_compile_jhtml (self, bytes, fullpath, &tmp_err);
         if (G_UNLIKELY (tmp_err != NULL))
         {
           g_warning
@@ -169,7 +167,86 @@ on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
         else
         {
           g_hash_table_insert
-          (self->scsses,
+          (cache,
+           g_strdup (fullpath),
+           g_bytes_ref (bytes));
+          _g_bytes_unref0 (bytes);
+        }
+      }
+    }
+    else
+    {
+      stream = g_memory_input_stream_new_from_bytes (bytes);
+      length = g_bytes_get_size (bytes);
+
+      webkit_uri_scheme_request_finish (request, stream, length, "text/html");
+      _g_object_unref0 (stream);
+    }
+  }
+  while (success == FALSE);
+
+  _g_free0 (fullpath);
+}
+
+static void
+on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
+{
+  ScpBrowser* self = SCP_BROWSER(pself);
+  GHashTable* cache = self->scsses;
+  GInputStream* stream = NULL;
+  const gchar* path = NULL;
+  const gchar* data = NULL;
+  gboolean success = TRUE;
+  GError* tmp_err = NULL;
+  GBytes* bytes = NULL;
+  gchar* fullpath = NULL;
+  gsize length = 0;
+
+  path =
+  webkit_uri_scheme_request_get_path (request);
+
+  if (g_str_has_prefix (path, GRESNAME) == FALSE)
+    fullpath = g_build_filename (GRESNAME, path, NULL);
+  else
+    fullpath = g_strdup (path);
+
+  do
+  {
+    success =
+    g_hash_table_lookup_extended (cache, fullpath, NULL, (gpointer*) &bytes);
+    if (G_UNLIKELY (success == FALSE))
+    {
+      bytes =
+      g_resources_lookup_data (fullpath, G_RESOURCE_LOOKUP_FLAGS_NONE, &tmp_err);
+      if (G_UNLIKELY (tmp_err != NULL))
+      {
+        webkit_uri_scheme_request_finish_error (request, tmp_err);
+        _g_bytes_unref0 (bytes);
+        _g_error_free0 (tmp_err);
+        break;
+      }
+      else
+      {
+        bytes =
+        _scp_browser_compile_scss (self, bytes, fullpath, &tmp_err);
+        if (G_UNLIKELY (tmp_err != NULL))
+        {
+          g_warning
+          ("(%s: %i): %s: %i: %s",
+           G_STRFUNC,
+           __LINE__,
+           g_quark_to_string (tmp_err->domain),
+           tmp_err->code,
+           tmp_err->message);
+          webkit_uri_scheme_request_finish_error (request, tmp_err);
+          _g_bytes_unref0 (bytes);
+          _g_error_free0 (tmp_err);
+          break;
+        }
+        else
+        {
+          g_hash_table_insert
+          (cache,
            g_strdup (fullpath),
            g_bytes_ref (bytes));
           _g_bytes_unref0 (bytes);
@@ -311,6 +388,13 @@ scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancella
 
   webkit_web_context_register_uri_scheme
   (self->context,
+   "jhtml",
+   on_uri_scheme_request_jhtml,
+   self,
+   NULL);
+
+  webkit_web_context_register_uri_scheme
+  (self->context,
    "scss",
    on_uri_scheme_request_scss,
    self,
@@ -373,6 +457,8 @@ static void
 scp_browser_class_finalize (GObject* pself)
 {
   ScpBrowser* self = SCP_BROWSER (pself);
+  g_hash_table_remove_all (self->jhtmls);
+  g_hash_table_unref (self->jhtmls);
   g_hash_table_remove_all (self->scsses);
   g_hash_table_unref (self->scsses);
 G_OBJECT_CLASS (scp_browser_parent_class)->finalize (pself);
@@ -382,6 +468,7 @@ static void
 scp_browser_class_dispose (GObject* pself)
 {
   ScpBrowser* self = SCP_BROWSER (pself);
+  g_hash_table_remove_all (self->jhtmls);
   g_hash_table_remove_all (self->scsses);
 G_OBJECT_CLASS (scp_browser_parent_class)->dispose (pself);
 }
@@ -419,6 +506,14 @@ scp_browser_init (ScpBrowser* self)
    * Compiled SCSS files cache
    *
    */
+
+  self->jhtmls =
+  g_hash_table_new_full
+  (g_str_hash,
+   g_str_equal,
+   g_free,
+   (GDestroyNotify)
+   g_bytes_unref);
 
   self->scsses =
   g_hash_table_new_full

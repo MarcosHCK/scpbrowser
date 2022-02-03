@@ -15,12 +15,6 @@
 # along with scpbrowser. If not, see <http://www.gnu.org/licenses/>.
 #
 
-# Keep sync with settings/Makefile.am
-schemasdir=${pkgdatadir}/schemas
-
-# Keep sync with src/Makefile.am
-girdir=${pkgdatadir}/gir/
-
 #
 # Some variables
 #
@@ -40,11 +34,7 @@ VOID=
 #
 
 SUBDIRS=\
-  extension \
-  limr \
-  resources \
-  vapi \
-  web \
+  limr_io \
   $(VOID)
 
 #
@@ -52,30 +42,29 @@ SUBDIRS=\
 #
 
 EXTRA_DIST+=\
-  scp_browser_internl.h \
-  scp_browser.h \
+  limr_io.h \
+  limr_state_patch.h \
+  limr_stream.h \
+  limr_value.h \
   $(VOID)
 
 #
 # Binaries and libraries
 #
 
-bin_PROGRAMS=scpbrowser
-pkglib_LTLIBRARIES=libscpbrowser.la
+pkglib_LTLIBRARIES=liblimr.la liblimr_io.la
 
-scpbrowser_SOURCES=\
-  scp_main.c \
+liblimr_la_SOURCES=\
+  limr.vala \
+  limr_state_patch.c \
+  limr_state.vala \
   $(VOID)
-scpbrowser_CFLAGS=\
+liblimr_la_CFLAGS=\
   $(GIO_CFLAGS) \
   $(GLIB_CFLAGS) \
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
-  $(GTK_CFLAGS) \
-  $(LIBSASS_CFLAGS) \
-  $(LIBSOUP_CFLAGS) \
-  $(WEBKIT2_CFLAGS) \
-  -DGIRDIR=\"${girdir}\" \
+  $(LUA_CFLAGS) \
   -DLOCALEDIR=\"${localedir}\" \
   -DMODULESDIR=\"${modulesdir}\" \
   -DSCHEMASDIR=\"${schemasdir}\" \
@@ -84,41 +73,33 @@ scpbrowser_CFLAGS=\
   -DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\" \
   -DGEXTNAME=\"org-hck-${PACKAGE_NAME}\" \
   -DGRESNAME=\"/org/hck/${PACKAGE_NAME}\" \
+  -D__LIBLIMR_INSIDE__=1 \
   $(VOID)
-scpbrowser_LDADD=\
+liblimr_la_LIBADD=\
   $(GIO_LIBS) \
   $(GLIB_LIBS) \
   $(GMODULE_LIBS) \
   $(GOBJECT_LIBS) \
-  $(GTK_LIBS) \
-  $(LIBSASS_LIBS) \
-  $(LIBSOUP_LIBS) \
-  $(WEBKIT2_LIBS) \
-  libscpbrowser.la \
-  web/libbundle.la \
+  $(LUA_LIBS) \
+  liblimr_io.la \
   $(VOID)
+liblimr_la_LDFLAGS=\
+	-rpath ${pkglibdir} \
+	-release ${PACKAGE_RELEASE} \
+	-version-info ${PACKAGE_VERSION_MAYOR}:${PACKAGE_VERSION_MINOR}:${PACKAGE_VERSION_MICRO} \
+	$(VOID)
 
-libscpbrowser_la_SOURCES=\
-  scp_application.vala \
-  scp_browser_jhtml.c \
-  scp_browser_scss.c \
-  scp_browser.c \
-  scp_message.vala \
-  scp_notebook_page.vala \
-  scp_notebook_tab.vala \
-  scp_settings.vala \
-  scp_window.vala \
+liblimr_io_la_SOURCES=\
+  limr_io.c \
+  limr_stream.c \
+  limr_value.c \
   $(VOID)
-libscpbrowser_la_CFLAGS=\
+liblimr_io_la_CFLAGS=\
   $(GIO_CFLAGS) \
   $(GLIB_CFLAGS) \
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
-  $(GTK_CFLAGS) \
-  $(LIBSASS_CFLAGS) \
-  $(WEBKIT2_CFLAGS) \
-  -DABSTOPBUILDDIR=\"${abs_top_builddir}\" \
-  -DGIRDIR=\"${girdir}\" \
+  $(LUA_CFLAGS) \
   -DLOCALEDIR=\"${localedir}\" \
   -DMODULESDIR=\"${modulesdir}\" \
   -DSCHEMASDIR=\"${schemasdir}\" \
@@ -127,20 +108,17 @@ libscpbrowser_la_CFLAGS=\
   -DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\" \
   -DGEXTNAME=\"org-hck-${PACKAGE_NAME}\" \
   -DGRESNAME=\"/org/hck/${PACKAGE_NAME}\" \
-  -D__LIBSCPBROWSER_INSIDE__=1 \
+  -D__LIBLIMR_INSIDE__=1 \
   $(VOID)
-libscpbrowser_la_LIBADD=\
+liblimr_io_la_LIBADD=\
   $(GIO_LIBS) \
   $(GLIB_LIBS) \
   $(GMODULE_LIBS) \
   $(GOBJECT_LIBS) \
-  $(GTK_LIBS) \
-  $(LIBSASS_LIBS) \
-  $(WEBKIT2_LIBS) \
-  limr/liblimr.la \
-  resources/libbundle.la \
+  $(LUA_LIBS) \
+  limr_io/libbundle.la \
   $(VOID)
-libscpbrowser_la_LDFLAGS=\
+liblimr_io_la_LDFLAGS=\
 	-rpath ${pkglibdir} \
 	-release ${PACKAGE_RELEASE} \
 	-version-info ${PACKAGE_VERSION_MAYOR}:${PACKAGE_VERSION_MINOR}:${PACKAGE_VERSION_MICRO} \
@@ -155,11 +133,9 @@ AM_VALAFLAGS=\
   --vapi-comments \
   --hide-internal \
   --abi-stability \
-  --header libscpbrowser.h \
-  --library libscpbrowser \
+  --header liblimr.h \
+  --library liblimr \
   --pkg config \
-  --pkg scp \
   -D DEBUG=${DEBUG} \
   -D DEVELOPER=${DEVELOPER} \
-  --gresources "${top_builddir}/src/resources/resources.gresources.xml" \
   $(VOID)

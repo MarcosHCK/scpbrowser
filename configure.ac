@@ -164,6 +164,7 @@ PKG_CHECK_MODULES([GOBJECT], [gobject-2.0])
 PKG_CHECK_MODULES([GTK], [gtk+-3.0])
 PKG_CHECK_MODULES([LIBSASS], [libsass])
 PKG_CHECK_MODULES([LIBSOUP], [libsoup-2.4])
+PKG_CHECK_MODULES([LUA], [luajit lua5.1 lua51])
 PKG_CHECK_MODULES([WEBKIT2], [webkit2gtk-4.0])
 
 #
@@ -190,14 +191,17 @@ AC_C_INLINE
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
-settings/Makefile
-src/extension/Makefile
-src/resources/Makefile
-src/web/Makefile
-src/vapi/Makefile
-src/Makefile
 gir/Makefile
 po/Makefile.in
+settings/Makefile
+src/extension/Makefile
+src/limr/limr_io/Makefile
+src/limr/vapi/Makefile
+src/limr/Makefile
+src/resources/Makefile
+src/vapi/Makefile
+src/web/Makefile
+src/Makefile
 Makefile
 ])
 
