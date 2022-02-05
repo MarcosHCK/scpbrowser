@@ -15,12 +15,5 @@
 # along with scpbrowser. If not, see <http://www.gnu.org/licenses/>.
 #
 
-liblimr.so*
-liblimr-*.so*
-liblimr_io.so*
-liblimr_io-*.so*
-
-liblimr.h
-liblimr.vapi
+limr
 limr.c
-limr_state.c

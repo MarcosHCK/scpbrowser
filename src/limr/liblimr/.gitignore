@@ -15,5 +15,12 @@
 # along with scpbrowser. If not, see <http://www.gnu.org/licenses/>.
 #
 
-resources.c
-resources.h
+liblimr.so*
+liblimr-*.so*
+
+liblimr.h
+liblimr.vapi
+limr_bridge_client.c
+limr_bridge_server.c
+limr_bridge.c
+limr_state.c

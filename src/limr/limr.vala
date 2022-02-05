@@ -18,8 +18,41 @@
 
 namespace Limr
 {
-  errordomain Error
+  public class Application : GLib.Application, GLib.Initable
   {
-    FAILED,
+    private Limr.BridgeServer server = null;
+
+    public override void activate ()
+    {
+      server.listen (this);
+    }
+
+    public bool init (GLib.Cancellable? cancellable = null) throws GLib.Error
+    {
+      server = new Limr.BridgeServer ();
+    return true;
+    }
+
+    public static int main (string[] args)
+    {
+      GLib.Application app = null;
+
+      try
+      {
+        app = new Limr.Application (Config.GAPPNAME, GLib.ApplicationFlags.FLAGS_NONE);
+      } catch (GLib.Error e)
+      {
+        critical (@"$(e.domain):$(e.code):$(e.message)");
+        assert_not_reached ();
+      }
+
+    return app.run (args);
+    }
+
+    public Application (string application_id, GLib.ApplicationFlags flags) throws GLib.Error
+    {
+      Object (application_id : application_id, flags : flags);
+      this.init ();
+    }
   }
 }

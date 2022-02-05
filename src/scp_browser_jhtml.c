@@ -16,7 +16,6 @@
  *
  */
 #include <config.h>
-#include <limr/liblimr.h>
 #include <scp_browser_internl.h>
 
 G_GNUC_INTERNAL
@@ -25,39 +24,9 @@ _scp_browser_compile_jhtml (ScpBrowser* self, GBytes* input_, const gchar* path,
 {
   GCancellable* cancellable = NULL;
   GOutputStream* endpoint = NULL;
-  LimrState* state = NULL;
   gboolean success = TRUE;
   GError* tmp_err = NULL;
   GBytes* bytes = NULL;
-
-/*
- * Prepare objects
- *
- */
-
-  cancellable =
-  g_cancellable_get_current ();
-
-  state =
-  limr_state_new (cancellable, &tmp_err);
-  if (G_UNLIKELY (tmp_err != NULL))
-  {
-    g_propagate_error (error, tmp_err);
-    goto_error ();
-  }
-
-/*
- * Load source
- *
- */
-
-  success =
-  limr_state_load_bytes (state, input_, cancellable, &tmp_err);
-  if (G_UNLIKELY (tmp_err != NULL))
-  {
-    g_propagate_error (error, tmp_err);
-    goto_error ();
-  }
 
   endpoint =
   g_memory_output_stream_new_resizable ();
@@ -68,7 +37,7 @@ _scp_browser_compile_jhtml (ScpBrowser* self, GBytes* input_, const gchar* path,
  */
 
   success =
-  limr_state_execute (state, endpoint, cancellable, &tmp_err);
+  limr_bridge_client_parse (self->limr_client, endpoint, input_, NULL, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
   {
     g_propagate_error (error, tmp_err);
@@ -102,7 +71,6 @@ _scp_browser_compile_jhtml (ScpBrowser* self, GBytes* input_, const gchar* path,
 
 _error_:
   _g_object_unref0 (endpoint);
-  _g_object_unref0 (state);
   if (G_UNLIKELY (success == FALSE))
     _g_bytes_unref0 (bytes);
 return bytes;

@@ -18,6 +18,7 @@
 #ifndef __SCP_BROWSER_INTERNAL__
 #define __SCP_BROWSER_INTERNAL__ 1
 #include <scp_browser.h>
+#include <limr/liblimr.h>
 
 #define goto_error() \
   G_STMT_START { \
@@ -43,6 +44,9 @@ struct _ScpBrowser
   /*<private>*/
   GHashTable* jhtmls;
   GHashTable* scsses;
+
+  /*<private>*/
+  LimrBridgeClient* limr_client;
 
   /*<private>*/
   WebKitWebContext* context;

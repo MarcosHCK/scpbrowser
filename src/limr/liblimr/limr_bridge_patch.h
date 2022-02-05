@@ -15,36 +15,26 @@
  * along with liblimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef __LIMR_STATE_PATCH__
-#define __LIMR_STATE_PATCH__ 1
+#ifndef __LIMR_BRIDGE_PATCH__
+#define __LIMR_BRIDGE_PATCH__ 1
 #include <gio/gio.h>
 
 #if __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
 G_GNUC_INTERNAL
-int
-limr_patch_ref_string (lua_State* L);
+GInputStream*
+limr_bridge_patch_get_stdin ();
 G_GNUC_INTERNAL
-lua_State*
-limr_patch_create_vm (GError** error);
+GOutputStream*
+limr_bridge_patch_get_stdout ();
 G_GNUC_INTERNAL
-int
-limr_patch_add_string (lua_State* L, const gchar* string_, gssize length);
-G_GNUC_INTERNAL
-int
-limr_patch_compile (lua_State* L, const gchar* source, gssize length, GError** error);
-G_GNUC_INTERNAL
-int
-limr_patch_execute (lua_State* L, GOutputStream* stream, GCancellable* cancellable, GError** error);
+GOutputStream*
+limr_bridge_patch_get_stderr ();
 
 #if __cplusplus
 }
 #endif // __cplusplus
 
-#endif // __LIMR_STATE_PATCH__
+#endif // __LIMR_BRIDGE_PATCH__

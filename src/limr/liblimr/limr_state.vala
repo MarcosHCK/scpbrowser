@@ -61,7 +61,7 @@ namespace Limr
 
     public bool init (GLib.Cancellable? cancellable = null) throws GLib.Error
     {
-      L = Limr.Patch.create_vm ();
+      L = Limr.StatePatch.create_vm ();
     return true;
     }
 
@@ -91,7 +91,7 @@ namespace Limr
       emitflush = (() =>
       {
         int id =
-        Limr.Patch.add_string (L, databuf.str, databuf.len);
+        Limr.StatePatch.add_string (L, databuf.str, databuf.len);
         source.append_printf ("do io.stdout:write (ref_string (%i)); end;\r\n", id);
         databuf.truncate (0);
       });
@@ -211,7 +211,7 @@ namespace Limr
       emitflush ();
       flushmacro ();
 
-      Limr.Patch.compile (L, source.str, source.len);
+      Limr.StatePatch.compile (L, source.str, source.len);
     return true;
     }
 
@@ -223,7 +223,7 @@ namespace Limr
 
     public bool execute (GLib.OutputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error
     {
-      Limr.Patch.execute (L, stream, cancellable);
+      Limr.StatePatch.execute (L, stream, cancellable);
     return true;
     }
 

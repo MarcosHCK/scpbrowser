@@ -15,24 +15,7 @@
  * along with liblimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef __LIMR_IO__
-#define __LIMR_IO__ 1
-#include <gmodule.h>
-
-#if __cplusplus
-extern "C" {
-#endif // __cplusplus
-
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
-G_MODULE_EXPORT
-int
-luaopen_limr_io (lua_State* L);
-
-#if __cplusplus
-}
-#endif // __cplusplus
-
-#endif // __LIMR_IO__
+#ifndef __LIBLIMR__
+#define __LIBLIMR__ 1
+#include "liblimr/liblimr.h"
+#endif // __LIBLIMR__

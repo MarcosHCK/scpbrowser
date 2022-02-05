@@ -18,8 +18,16 @@
 
 namespace Limr
 {
+  [CCode (cheader_filename = "limr_bridge_patch.h")]
+  public class BridgePatch
+  {
+    public static GLib.InputStream get_stdin ();
+    public static GLib.OutputStream get_stdout ();
+    public static GLib.OutputStream get_stderr ();
+  }
+
   [CCode (cheader_filename = "limr_state_patch.h")]
-  public class Patch
+  public class StatePatch
   {
     public static Lua.LuaVM create_vm () throws GLib.Error;
     public static int add_string (Lua.LuaVM L, string string_, size_t length = -1);
