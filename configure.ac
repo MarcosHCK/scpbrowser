@@ -195,8 +195,7 @@ gir/Makefile
 po/Makefile.in
 settings/Makefile
 src/extension/Makefile
-src/limr/liblimr/Makefile
-src/limr/vapi/Makefile
+src/limr/resources/Makefile
 src/limr/Makefile
 src/resources/Makefile
 src/vapi/Makefile

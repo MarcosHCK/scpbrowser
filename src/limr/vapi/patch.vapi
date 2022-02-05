@@ -15,26 +15,26 @@
  * along with liblimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef __LIMR_BRIDGE_PATCH__
-#define __LIMR_BRIDGE_PATCH__ 1
-#include <gio/gio.h>
 
-#if __cplusplus
-extern "C" {
-#endif // __cplusplus
+namespace Limr
+{
+  [CCode (cheader_filename = "limr_state_patch.h")]
+  public class StatePatch
+  {
+    public static Lua.LuaVM create_vm () throws GLib.Error;
+    public static int reset_vm (Lua.LuaVM L) throws GLib.Error;
+    public static int add_string (Lua.LuaVM L, string string_, size_t length = -1);
+    public static int compile (Lua.LuaVM L, string string_, size_t length = -1) throws GLib.Error;
+    public static int execute (Lua.LuaVM L, GLib.OutputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error;
+  }
 
-G_GNUC_INTERNAL
-GInputStream*
-limr_bridge_patch_get_stdin ();
-G_GNUC_INTERNAL
-GOutputStream*
-limr_bridge_patch_get_stdout ();
-G_GNUC_INTERNAL
-GOutputStream*
-limr_bridge_patch_get_stderr ();
-
-#if __cplusplus
+  [CCode (cheader_filename = "limr_state_patch.h")]
+  errordomain StatePatchError
+  {
+    FAILED,
+    SYNTAX,
+    RUN,
+    MEM;
+    public static GLib.Quark quark ();
+  }
 }
-#endif // __cplusplus
-
-#endif // __LIMR_BRIDGE_PATCH__

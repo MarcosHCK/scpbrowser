@@ -15,25 +15,5 @@
 # along with scpbrowser. If not, see <http://www.gnu.org/licenses/>.
 #
 
-#
-# Some variables
-#
-
-PACKAGE_NAME=@PACKAGE_NAME@
-PACKAGE_RELEASE=@PACKAGE_RELEASE@
-PACKAGE_VERSION_MAYOR=@PACKAGE_VERSION_MAYOR@
-PACKAGE_VERSION_MINOR=@PACKAGE_VERSION_MINOR@
-PACKAGE_VERSION_MICRO=@PACKAGE_VERSION_MICRO@
-PACKAGE_VERSION_BUILD=@PACKAGE_VERSION_BUILD@
-
-EXTRA_DIST=
-VOID=
-
-#
-# vapis
-#
-
-EXTRA_DIST+=\
-  config.vapi \
-  config.deps \
-  $(VOID)
+resources.c
+resources.h

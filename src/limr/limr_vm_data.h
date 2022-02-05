@@ -15,9 +15,15 @@
  * along with liblimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef __LIMR_STATE_PATCH__
-#define __LIMR_STATE_PATCH__ 1
+#ifndef __LIMR_VM_DATA__
+#define __LIMR_VM_DATA__ 1
 #include <gio/gio.h>
+#include <stdio.h>
+
+typedef struct _VmData VmData;
+typedef struct _VmStream VmStream;
+
+#define LVMDATA "__LIMR_VMDATA"
 
 #if __cplusplus
 extern "C" {
@@ -27,24 +33,34 @@ extern "C" {
 #include <lualib.h>
 #include <lauxlib.h>
 
+struct _VmData
+{
+  FILE* stdout_;
+  char* buffer;
+  size_t buffsz;
+};
+
+struct _VmStream
+{
+  FILE* handle;
+
+  /*<private>*/
+  /* lua implementation specific */
+  int dummy;
+};
+
 G_GNUC_INTERNAL
 int
-limr_state_patch_ref_string (lua_State* L);
+_limr_data_init (lua_State* L);
 G_GNUC_INTERNAL
-lua_State*
-limr_state_patch_create_vm (GError** error);
-G_GNUC_INTERNAL
-int
-limr_state_patch_add_string (lua_State* L, const gchar* string_, gssize length);
+VmData*
+_limr_data_fetch (lua_State* L);
 G_GNUC_INTERNAL
 int
-limr_state_patch_compile (lua_State* L, const gchar* source, gssize length, GError** error);
-G_GNUC_INTERNAL
-int
-limr_state_patch_execute (lua_State* L, GOutputStream* stream, GCancellable* cancellable, GError** error);
+_limr_data_reset (lua_State* L);
 
 #if __cplusplus
 }
 #endif // __cplusplus
 
-#endif // __LIMR_STATE_PATCH__
+#endif // __LIMR_VM_DATA__

@@ -34,7 +34,7 @@ VOID=
 #
 
 SUBDIRS=\
-  liblimr \
+  resources \
   $(VOID)
 
 #
@@ -42,45 +42,50 @@ SUBDIRS=\
 #
 
 EXTRA_DIST+=\
+  vapi/config.deps \
+  vapi/config.vapi \
+  vapi/patch.deps \
+  vapi/patch.vapi \
+  limr_state_patch.h \
+  limr_vm_data.h \
   $(VOID)
 
 #
 # Binaries and libraries
 #
 
-pkglibexec_PROGRAMS=limr
-noinst_LTLIBRARIES=liblimr.la
+pkglib_LTLIBRARIES=liblimr.la
 
-limr_SOURCES=\
-  limr.vala \
+liblimr_la_SOURCES=\
+  limr_state_patch.c \
+  limr_state.vala \
+  limr_vm_data.c \
   $(VOID)
-limr_CFLAGS=\
+liblimr_la_CFLAGS=\
   $(GIO_CFLAGS) \
   $(GLIB_CFLAGS) \
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
   $(LUA_CFLAGS) \
-  -DG_LOG_DOMAIN=\"Limr\" \
-  -DGAPPNAME=\"org.hck.${PACKAGE_NAME}.limr\" \
-  -DGRESNAME=\"/org/hck/${PACKAGE_NAME}/limr\" \
-  -D__LIMR_INSIDE__=1 \
+  -DG_LOG_DOMAIN=\"LibLimr\" \
+  -DABSTOPBUILDDIR=\"${abs_top_builddir}\" \
+  -DGAPPNAME=\"org.hck.${PACKAGE_NAME}\" \
+  -DGRESNAME=\"/org/hck/${PACKAGE_NAME}\" \
+  -D__LIBLIMR_INSIDE__=1 \
   $(VOID)
-limr_LDADD=\
+liblimr_la_LIBADD=\
   $(GIO_LIBS) \
   $(GLIB_LIBS) \
   $(GMODULE_LIBS) \
   $(GOBJECT_LIBS) \
   $(LUA_LIBS) \
-  liblimr/liblimr.la \
+  resources/libbundle.la \
   $(VOID)
-
-liblimr_la_SOURCES=\
-  $(VOID)
-liblimr_la_CFLAGS=\
-  $(VOID)
-liblimr_la_LIBADD=\
-  liblimr/liblimr.la \
-  $(VOID)
+liblimr_la_LDFLAGS=\
+  -rpath ${pkglibdir} \
+	-release ${PACKAGE_RELEASE} \
+	-version-info ${PACKAGE_VERSION_MAYOR}:${PACKAGE_VERSION_MINOR}:${PACKAGE_VERSION_MICRO} \
+	$(VOID)
 
 #
 # Vala
@@ -88,12 +93,12 @@ liblimr_la_LIBADD=\
 
 AM_VALAFLAGS=\
   --vapidir=vapi/ \
-  --vapidir=liblimr/ \
   --vapi-comments \
   --hide-internal \
   --abi-stability \
+  --header liblimr.h \
+  --library liblimr \
   --pkg config \
-  --pkg liblimr \
   -D DEBUG=${DEBUG} \
   -D DEVELOPER=${DEVELOPER} \
   $(VOID)

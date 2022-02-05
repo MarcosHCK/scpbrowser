@@ -72,6 +72,7 @@ namespace Limr
 
     public bool load_stream (GLib.InputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error
     {
+      Limr.StatePatch.reset_vm (L);
       var buffer = new uint8[bufferSize];
       var source = new GLib.StringBuilder.sized (bufferSize);
       var databuf = new GLib.StringBuilder.sized (bufferSize);
@@ -224,6 +225,15 @@ namespace Limr
     public bool execute (GLib.OutputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error
     {
       Limr.StatePatch.execute (L, stream, cancellable);
+    return true;
+    }
+
+    public bool parse (GLib.Bytes code, GLib.OutputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error
+    {
+      var input = new GLib.MemoryInputStream.from_bytes (code);
+      this.load_stream (input, cancellable);
+      this.execute (stream, cancellable);
+      Limr.StatePatch.reset_vm (L);
     return true;
     }
 

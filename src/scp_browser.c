@@ -470,12 +470,6 @@ scp_browser_class_dispose (GObject* pself)
   ScpBrowser* self = SCP_BROWSER (pself);
   g_hash_table_remove_all (self->jhtmls);
   g_hash_table_remove_all (self->scsses);
-  limr_bridge_client_release (self->limr_client);
-#if DEVELOPER == 1
-  g_assert_finalize_object (self->limr_client);
-#else // !DEVELOPER
-  _g_object_unref0 (self->limr_client);
-#endif // DEVELOPER
 G_OBJECT_CLASS (scp_browser_parent_class)->dispose (pself);
 }
 
@@ -528,14 +522,6 @@ scp_browser_init (ScpBrowser* self)
    g_free,
    (GDestroyNotify)
    g_bytes_unref);
-
-  /*
-   * Helper objects
-   *
-   */
-
-  self->limr_client =
-  limr_bridge_client_new ();
 }
 
 /*
