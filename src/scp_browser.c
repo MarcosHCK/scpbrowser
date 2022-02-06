@@ -109,163 +109,8 @@ on_uri_scheme_request_resources (WebKitURISchemeRequest* request, gpointer pself
   on_uri_scheme_request_resource (request, path, pself);
 }
 
-static void
-on_uri_scheme_request_jhtml (WebKitURISchemeRequest* request, gpointer pself)
-{
-  ScpBrowser* self = SCP_BROWSER(pself);
-  GHashTable* cache = self->jhtmls;
-  GInputStream* stream = NULL;
-  const gchar* path = NULL;
-  const gchar* data = NULL;
-  gboolean success = TRUE;
-  GError* tmp_err = NULL;
-  GBytes* bytes = NULL;
-  gchar* fullpath = NULL;
-  gsize length = 0;
-
-  path =
-  webkit_uri_scheme_request_get_path (request);
-
-  if (g_str_has_prefix (path, GRESNAME) == FALSE)
-    fullpath = g_build_filename (GRESNAME, path, NULL);
-  else
-    fullpath = g_strdup (path);
-
-  do
-  {
-    success =
-    g_hash_table_lookup_extended (cache, fullpath, NULL, (gpointer*) &bytes);
-    if (G_UNLIKELY (success == FALSE))
-    {
-      bytes =
-      g_resources_lookup_data (fullpath, G_RESOURCE_LOOKUP_FLAGS_NONE, &tmp_err);
-      if (G_UNLIKELY (tmp_err != NULL))
-      {
-        webkit_uri_scheme_request_finish_error (request, tmp_err);
-        _g_bytes_unref0 (bytes);
-        _g_error_free0 (tmp_err);
-        break;
-      }
-      else
-      {
-        bytes =
-        _scp_browser_compile_jhtml (self, bytes, fullpath, &tmp_err);
-        if (G_UNLIKELY (tmp_err != NULL))
-        {
-          g_warning
-          ("(%s: %i): %s: %i: %s",
-           G_STRFUNC,
-           __LINE__,
-           g_quark_to_string (tmp_err->domain),
-           tmp_err->code,
-           tmp_err->message);
-          webkit_uri_scheme_request_finish_error (request, tmp_err);
-          _g_bytes_unref0 (bytes);
-          _g_error_free0 (tmp_err);
-          break;
-        }
-        else
-        {
-          g_hash_table_insert
-          (cache,
-           g_strdup (fullpath),
-           g_bytes_ref (bytes));
-          _g_bytes_unref0 (bytes);
-        }
-      }
-    }
-    else
-    {
-      stream = g_memory_input_stream_new_from_bytes (bytes);
-      length = g_bytes_get_size (bytes);
-
-      webkit_uri_scheme_request_finish (request, stream, length, "text/html");
-      _g_object_unref0 (stream);
-    }
-  }
-  while (success == FALSE);
-
-  _g_free0 (fullpath);
-}
-
-static void
-on_uri_scheme_request_scss (WebKitURISchemeRequest* request, gpointer pself)
-{
-  ScpBrowser* self = SCP_BROWSER(pself);
-  GHashTable* cache = self->scsses;
-  GInputStream* stream = NULL;
-  const gchar* path = NULL;
-  const gchar* data = NULL;
-  gboolean success = TRUE;
-  GError* tmp_err = NULL;
-  GBytes* bytes = NULL;
-  gchar* fullpath = NULL;
-  gsize length = 0;
-
-  path =
-  webkit_uri_scheme_request_get_path (request);
-
-  if (g_str_has_prefix (path, GRESNAME) == FALSE)
-    fullpath = g_build_filename (GRESNAME, path, NULL);
-  else
-    fullpath = g_strdup (path);
-
-  do
-  {
-    success =
-    g_hash_table_lookup_extended (cache, fullpath, NULL, (gpointer*) &bytes);
-    if (G_UNLIKELY (success == FALSE))
-    {
-      bytes =
-      g_resources_lookup_data (fullpath, G_RESOURCE_LOOKUP_FLAGS_NONE, &tmp_err);
-      if (G_UNLIKELY (tmp_err != NULL))
-      {
-        webkit_uri_scheme_request_finish_error (request, tmp_err);
-        _g_bytes_unref0 (bytes);
-        _g_error_free0 (tmp_err);
-        break;
-      }
-      else
-      {
-        bytes =
-        _scp_browser_compile_scss (self, bytes, fullpath, &tmp_err);
-        if (G_UNLIKELY (tmp_err != NULL))
-        {
-          g_warning
-          ("(%s: %i): %s: %i: %s",
-           G_STRFUNC,
-           __LINE__,
-           g_quark_to_string (tmp_err->domain),
-           tmp_err->code,
-           tmp_err->message);
-          webkit_uri_scheme_request_finish_error (request, tmp_err);
-          _g_bytes_unref0 (bytes);
-          _g_error_free0 (tmp_err);
-          break;
-        }
-        else
-        {
-          g_hash_table_insert
-          (cache,
-           g_strdup (fullpath),
-           g_bytes_ref (bytes));
-          _g_bytes_unref0 (bytes);
-        }
-      }
-    }
-    else
-    {
-      stream = g_memory_input_stream_new_from_bytes (bytes);
-      length = g_bytes_get_size (bytes);
-
-      webkit_uri_scheme_request_finish (request, stream, length, "text/html");
-      _g_object_unref0 (stream);
-    }
-  }
-  while (success == FALSE);
-
-  _g_free0 (fullpath);
-}
+IMPLEMENT_CACHED_ON_REQUEST (jhtml, jhtmls, _scp_browser_compile_jhtml);
+IMPLEMENT_CACHED_ON_REQUEST (scss, scsses, _scp_browser_compile_scss);
 
 static void
 on_uri_scheme_request_scpbrowser (WebKitURISchemeRequest* request, gpointer pself)
@@ -278,13 +123,13 @@ on_uri_scheme_request_scpbrowser (WebKitURISchemeRequest* request, gpointer psel
   path =
   g_path_get_basename (webkit_uri_scheme_request_get_path (request));
   if (g_strcmp0 (path, "home") == 0)
-    on_uri_scheme_request_resource (request, "html/home.html", pself);
+    on_uri_scheme_request_jhtml_with_fullpath (request, GRESNAME "/html/home.html", pself);
   else
   if (g_strcmp0 (path, "settings") == 0)
-    on_uri_scheme_request_resource (request, "html/settings.html", pself);
+    on_uri_scheme_request_jhtml_with_fullpath (request, GRESNAME "/html/settings.html", pself);
   else
   if (g_strcmp0 (path, "about") == 0)
-    on_uri_scheme_request_resource (request, "html/about.html", pself);
+    on_uri_scheme_request_jhtml_with_fullpath (request, GRESNAME "/html/about.html", pself);
   else
   {
     g_set_error

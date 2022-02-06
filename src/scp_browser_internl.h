@@ -32,6 +32,91 @@
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
 
+#define IMPLEMENT_CACHED_ON_REQUEST(prefix,cache,generator) \
+  static void \
+  on_uri_scheme_request_##prefix##_with_fullpath (WebKitURISchemeRequest* request, const gchar* fullpath, gpointer pself) \
+  { \
+    ScpBrowser* self = SCP_BROWSER(pself); \
+    GHashTable* cache = self-> cache; \
+    GInputStream* stream = NULL; \
+    const gchar* data = NULL; \
+    gboolean success = TRUE; \
+    GError* tmp_err = NULL; \
+    GBytes* bytes = NULL; \
+    gsize length = 0; \
+;\
+    do \
+    { \
+      success = \
+      g_hash_table_lookup_extended (cache, fullpath, NULL, (gpointer*) &bytes); \
+      if (G_UNLIKELY (success == FALSE)) \
+      { \
+        bytes = \
+        g_resources_lookup_data (fullpath, G_RESOURCE_LOOKUP_FLAGS_NONE, &tmp_err); \
+        if (G_UNLIKELY (tmp_err != NULL)) \
+        { \
+          webkit_uri_scheme_request_finish_error (request, tmp_err); \
+          _g_bytes_unref0 (bytes); \
+          _g_error_free0 (tmp_err); \
+          break; \
+        } \
+        else \
+        { \
+          bytes = \
+          (generator) (self, bytes, fullpath, &tmp_err); \
+          if (G_UNLIKELY (tmp_err != NULL)) \
+          { \
+            g_warning \
+            ("(%s: %i): %s: %i: %s", \
+            G_STRFUNC, \
+            __LINE__, \
+            g_quark_to_string (tmp_err->domain), \
+            tmp_err->code, \
+            tmp_err->message); \
+            webkit_uri_scheme_request_finish_error (request, tmp_err); \
+            _g_bytes_unref0 (bytes); \
+            _g_error_free0 (tmp_err); \
+            break; \
+          } \
+          else \
+          { \
+            g_hash_table_insert \
+            (cache, \
+            g_strdup (fullpath), \
+            g_bytes_ref (bytes)); \
+            _g_bytes_unref0 (bytes); \
+          } \
+        } \
+      } \
+      else \
+      { \
+        stream = g_memory_input_stream_new_from_bytes (bytes); \
+        length = g_bytes_get_size (bytes); \
+; \
+        webkit_uri_scheme_request_finish (request, stream, length, "text/html"); \
+        _g_object_unref0 (stream); \
+      } \
+    } \
+    while (success == FALSE); \
+  } \
+  static void \
+  on_uri_scheme_request_##prefix (WebKitURISchemeRequest* request, gpointer pself) \
+  { \
+    const gchar* path = NULL; \
+    gchar* fullpath = NULL; \
+;\
+    path = \
+    webkit_uri_scheme_request_get_path (request); \
+;\
+    if (g_str_has_prefix (path, GRESNAME) == FALSE) \
+      fullpath = g_build_filename (GRESNAME, path, NULL); \
+    else \
+      fullpath = g_strdup (path); \
+; \
+    on_uri_scheme_request_##prefix##_with_fullpath (request, fullpath, pself); \
+    _g_free0 (fullpath); \
+  }
+
 #if __cplusplus
 extern "C" {
 #endif // __cplusplus
