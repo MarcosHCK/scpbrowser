@@ -18,127 +18,87 @@
 #include <config.h>
 #include <limr_state_patch.h>
 #include <limr_vm_data.h>
-#include <inttypes.h>
+#include <limr_vm_procs.h>
 #include <stdio.h>
 
 G_DEFINE_QUARK
 (limr-state-patch-error-quark,
  limr_state_patch_error);
 
-#define LSTRINGS "__LIMR_STRINGS"
-#define LSKETCH "__LIMR_SKETCH"
-
-#define IF_LUA_ERROR(L, code) \
-  if(G_UNLIKELY \
-    (code != LUA_OK \
-      && lua_type(L, -1) != LUA_TSTRING)) \
-  { \
-    if (code == LUA_ERRMEM) \
-    { \
-      g_critical \
-      ("(%s: %i): out of memory", \
-       G_STRFUNC, \
-       __LINE__); \
-      g_assert_not_reached(); \
-    } \
-    else \
-    { \
-      lua_pushfstring \
-      (L, \
-       "(%s: %i): wtf?", \
-       G_STRFUNC, \
-       __LINE__); \
-    } \
-  } else \
-  if(G_UNLIKELY(code != LUA_OK))
-#define THROW_GERROR(L, error) \
-  G_STMT_START { \
-    lua_pushstring(L, ((error))->message); \
-    g_error_free(((error))); \
-    lua_error(L); \
-  } G_STMT_END
 #define _lua_close0(var) ((var == NULL) ? NULL : (var = (lua_close (var), NULL)))
 
 G_GNUC_INTERNAL
 lua_State*
 limr_state_patch_create_vm (GError** error)
 {
-  lua_State* L =
+  lua_State* L = NULL;
+  VmData* data = NULL;
+  VmStream* stream = NULL;
+  GError* tmp_err = NULL;
+
+  L =
   luaL_newstate ();
   luaL_openlibs (L);
   lua_settop (L, 0);
 
   _limr_data_init (L);
-  VmData* data =
+  data =
   _limr_data_fetch (L);
 
   lua_getglobal (L, "io");
   lua_getfield (L, -1, "stdout");
-  VmStream* stream = 
+  stream = 
   lua_touserdata (L, -1);
   stream->handle = data->stdout_;
   lua_pop (L, 2);
 
-  GError* tmp_err = NULL;
-  limr_state_patch_reset_vm (L, &tmp_err);
+  limr_procs_emit (L, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
   {
     g_propagate_error (error, tmp_err);
     _lua_close0 (L);
     return NULL;
   }
+
+  lua_settop (L, 0);
+  lua_gc (L, LUA_GCCOLLECT, 1);
 return L;
 }
 
 static int
-_limr_ref_string (lua_State* L)
+_ref_string (lua_State* L)
 {
-  int idx, id;
+  int stridx;
+  int idx;
 
-  id = luaL_checkinteger (L, 1);
   idx = lua_upvalueindex (1);
-  lua_pushinteger (L, id);
+  stridx = luaL_checkinteger (L, 1);
+  lua_pushinteger (L, stridx);
   lua_gettable (L, idx);
 return 1;
 }
 
-G_GNUC_INTERNAL
-int
-limr_state_patch_reset_vm (lua_State* L, GError** error)
+static int
+_sketch (lua_State* L)
 {
-  lua_createtable (L, 0, 0);
-  lua_pushvalue (L, -1);
-  lua_setfield (L, LUA_REGISTRYINDEX, LSTRINGS);
-  lua_pushcclosure (L, _limr_ref_string, 1);
-  lua_setglobal (L, "ref_string");
-  lua_gc (L, LUA_GCCOLLECT, 1);
+  int idx1 = lua_upvalueindex (1);
+  int idx2 = lua_upvalueindex (2);
+
+  lua_pushvalue (L, idx2);
+  lua_setfield (L, LUA_ENVIRONINDEX, "ref_string");
+  lua_pushvalue (L, idx1);
+  lua_call (L, 0, 0);
+return 0;
 }
 
 G_GNUC_INTERNAL
 int
-limr_state_patch_add_string (lua_State* L, const gchar* string_, gssize length)
-{
-  int elements;
-  if (length < 0)
-    length = strlen (string_);
-  lua_getfield (L, LUA_REGISTRYINDEX, LSTRINGS);
-
-  elements = lua_objlen (L, -1) + 1;
-  lua_pushinteger (L, elements);
-  lua_pushlstring (L, string_, length);
-  lua_settable (L, -3);
-  lua_pop (L, 1);
-return elements;
-}
-
-G_GNUC_INTERNAL
-int
-limr_state_patch_compile (lua_State* L, const gchar* source, gssize length, GError** error)
+limr_state_patch_compile (lua_State* L, const gchar** strings, gint n_strings, GString* source, GError** error)
 {
   int result;
 
   result =
-  luaL_loadbuffer (L, source, length, "=sketch");
+  luaL_loadbuffer (L, source->str, source->len, "=sketch");
   if (G_UNLIKELY (result != LUA_OK))
   {
     if(G_LIKELY
@@ -165,18 +125,32 @@ limr_state_patch_compile (lua_State* L, const gchar* source, gssize length, GErr
        __LINE__);
     }
   }
-  else
+
   {
-    g_assert (lua_type (L, -1) == LUA_TFUNCTION);
-    lua_setfield (L, LUA_REGISTRYINDEX, LSKETCH);
+    GStringChunk** store;
+    gint i;
+
+    lua_createtable (L, n_strings, 1);
+    for (i = 0; i < n_strings; i++)
+    {
+      lua_pushinteger (L, i + 1);
+      lua_pushstring (L, strings[i]);
+      lua_settable (L, -3);
+    }
+
+    lua_pushcclosure (L, _ref_string, 1);
+    lua_pushcclosure (L, _sketch, 2);
   }
+
 #if DEVELOPER == 1
-  g_assert (lua_gettop (L) == 0);
+  g_assert (lua_isfunction (L, -1));
+  g_assert (lua_gettop (L) == 1);
 #endif // DEVELOPER
 return (result == LUA_OK) ? 0 : 1;
 }
 
-static int
+G_GNUC_INTERNAL
+int
 _limr_throwrap (lua_State* L)
 {
   const gchar* err = NULL;
@@ -194,16 +168,6 @@ _limr_throwrap (lua_State* L)
 return 1;
 }
 
-static int
-_limr_boot (lua_State* L)
-{
-  lua_pushcfunction (L, _limr_data_reset);
-  lua_call (L, 0, 0);
-  lua_getfield (L, LUA_REGISTRYINDEX, LSKETCH);
-  lua_call (L, 0, 0);
-return 0;
-}
-
 G_GNUC_INTERNAL
 int
 limr_state_patch_execute (lua_State* L, GOutputStream* stream, GCancellable* cancellable, GError** error)
@@ -215,10 +179,24 @@ limr_state_patch_execute (lua_State* L, GOutputStream* stream, GCancellable* can
   long size = 0;
 
   lua_pushcfunction (L, _limr_throwrap);
-  lua_pushcfunction (L, _limr_boot);
-
+  lua_pushcfunction (L, _limr_data_reset);
   result =
-  lua_pcall (L, 0, 0, top);
+  lua_pcall (L, 0, 0, top + 1);
+  IF_LUA_ERROR (L, result)
+  {
+    g_set_error
+    (error,
+     LIMR_STATE_PATCH_ERROR,
+     LIMR_STATE_PATCH_ERROR_FAILED,
+     "%s",
+     lua_tostring(L, -1));
+    lua_pop (L, 1);
+  }
+
+  lua_getfield (L, LUA_REGISTRYINDEX, LEXECUTOR);
+  lua_pushvalue (L, top);
+  result =
+  lua_pcall (L, 1, 0, top + 1);
   IF_LUA_ERROR (L, result)
   {
     g_set_error

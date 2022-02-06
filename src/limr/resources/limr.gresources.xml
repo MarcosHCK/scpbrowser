@@ -23,11 +23,11 @@ Author: MarcosHCK
   <gresource prefix="/org/hck/scpbrowser/limr">
     <!--
      *
-     * Libraries
+     * Lua libraries
      *
     -->
 
-    <!--<file>lua/file.lua</file>-->
+    <file>lua/patch.lua</file>
 
   </gresource>
 </gresources>

@@ -48,6 +48,7 @@ EXTRA_DIST+=\
   vapi/patch.vapi \
   limr_state_patch.h \
   limr_vm_data.h \
+  limr_vm_procs.h \
   $(VOID)
 
 #
@@ -60,6 +61,7 @@ liblimr_la_SOURCES=\
   limr_state_patch.c \
   limr_state.vala \
   limr_vm_data.c \
+  limr_vm_procs.c \
   $(VOID)
 liblimr_la_CFLAGS=\
   $(GIO_CFLAGS) \
@@ -69,8 +71,8 @@ liblimr_la_CFLAGS=\
   $(LUA_CFLAGS) \
   -DG_LOG_DOMAIN=\"LibLimr\" \
   -DABSTOPBUILDDIR=\"${abs_top_builddir}\" \
-  -DGAPPNAME=\"org.hck.${PACKAGE_NAME}\" \
-  -DGRESNAME=\"/org/hck/${PACKAGE_NAME}\" \
+  -DGAPPNAME=\"org.hck.${PACKAGE_NAME}.limr\" \
+  -DGRESNAME=\"/org/hck/${PACKAGE_NAME}/limr\" \
   -D__LIBLIMR_INSIDE__=1 \
   $(VOID)
 liblimr_la_LIBADD=\

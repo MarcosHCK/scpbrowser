@@ -21,10 +21,10 @@ namespace Limr
   [CCode (cheader_filename = "limr_state_patch.h")]
   public class StatePatch
   {
+    public const string SKETCH;
+    public const string BACKLINK;
     public static Lua.LuaVM create_vm () throws GLib.Error;
-    public static int reset_vm (Lua.LuaVM L) throws GLib.Error;
-    public static int add_string (Lua.LuaVM L, string string_, size_t length = -1);
-    public static int compile (Lua.LuaVM L, string string_, size_t length = -1) throws GLib.Error;
+    public static int compile (Lua.LuaVM L, string[] slices, GLib.StringBuilder source) throws GLib.Error;
     public static int execute (Lua.LuaVM L, GLib.OutputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error;
   }
 

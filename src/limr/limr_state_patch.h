@@ -20,7 +20,6 @@
 #include <gio/gio.h>
 
 #define LIMR_STATE_PATCH_ERROR (limr_state_patch_error_quark ())
-
 typedef enum
 {
   LIMR_STATE_PATCH_ERROR_FAILED,
@@ -28,6 +27,9 @@ typedef enum
   LIMR_STATE_PATCH_ERROR_RUN,
   LIMR_STATE_PATCH_ERROR_MEM,
 } LimrStatePatchError;
+
+#define LIMR_STATE_PATCH_SKETCH "__LIMR_SKETCH"
+#define LIMR_STATE_PATCH_BACKLINK "__LIMR_BACKLINK"
 
 #if __cplusplus
 extern "C" {
@@ -51,7 +53,7 @@ int
 limr_state_patch_add_string (lua_State* L, const gchar* string_, gssize length);
 G_GNUC_INTERNAL
 int
-limr_state_patch_compile (lua_State* L, const gchar* source, gssize length, GError** error);
+limr_state_patch_compile (lua_State* L, const gchar** strings, gint n_strings, GString* source, GError** error);
 G_GNUC_INTERNAL
 int
 limr_state_patch_execute (lua_State* L, GOutputStream* stream, GCancellable* cancellable, GError** error);
