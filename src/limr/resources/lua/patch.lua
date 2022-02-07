@@ -16,6 +16,7 @@
  * along with liblimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  *]]
+local limr = limr
 local patch = {}
 
 do
@@ -40,8 +41,10 @@ do
     end
   end
 
-  local function getproxy (source)
-    return setmetatable ({}, {
+  local function proxify (source)
+    return
+    (source or nil) and
+    setmetatable ({}, {
       __metatable = "metatable",
       __index = source,
     })
@@ -73,22 +76,21 @@ do
     tonumber = tonumber,
     tostring = tostring,
     type = type,
-    require = require,
     print = print,
     printerr = printerr,
-
-    bit32 = getproxy (bit32),
-    coroutine = getproxy (coroutine),
-    debug = getproxy (debug),
-    io = getproxy (io),
-    math = getproxy (math),
-    os = getproxy (os),
-    string = getproxy (string),
-    table = getproxy (table),
+    require = require,
     checkArg = checkArg,
-  }
 
-  global._G = global;
+    bit32 = proxify (bit32),
+    coroutine = proxify (coroutine),
+    debug = proxify (debug),
+    io = proxify (io),
+    math = proxify (math),
+    os = proxify (os),
+    package = proxify (package),
+    string = proxify (string),
+    table = proxify (table),
+  }
 
   if (not global.table.unpack) then
     if (_G.unpack) then
@@ -110,41 +112,62 @@ do
     end
   end
 
-  --
-  -- Custom 'require' loader
-  --
+  global._G = global;
+  patch.environ = global;
 
-  table.insert (
-   package.searchers or package.loaders,
-   function (modname)
-    local exists = limr.resources.exists
-    local load = limr.resources.load
-    local msgs = {}
+  do
+    local function searcher (existsfunc, loadfunc, pathfrom, pathidx)
+      return
+      function (modname)
+        local template = pathfrom[pathidx]
+        local msgs = {}
 
-    for item in limr.searchpath (modname, './lua/?.lua') do
-      if (exists (item)) then
-        local func, reason = load (item, nil, nil, global)
-        return (func or reason)
-      else
-        table.insert (msgs, '\r\n\tno file ' .. item)
+        for file in limr.searchpath (modname, template) do
+          if (existsfunc (file)) then
+            local func, reason = loadfunc (file, nil, 't', global)
+            if (not func) then
+              error (reason)
+            else
+              return func
+            end
+          else
+            table.insert (msgs, '\r\n\tno file ')
+            table.insert (msgs, file)
+          end
+        end
+
+      return (#msgs > 0) and (table.concat (msgs))
       end
     end
-  return (#msgs > 0) and table.concat (msgs)
-  end)
 
-  --
-  -- Sketch executor
-  --
+    table.insert(
+     package.searchers
+     or package.loaders,
+     searcher(
+      limr.resources.exists,
+      limr.resources.parse,
+      limr, 'rpath'))
 
-  function patch.executor (sketch)
-    checkArg (1, sketch, "function");
-    local function invoker ()
-      sketch ()
-    end
-
-    local _g = getproxy (global)
-    limr.setfenv (invoker, _g)
-    invoker ()
+    table.insert(
+     package.searchers
+     or package.loaders,
+     searcher(
+      function (file)
+        local handle = io.open (file, 'r')
+        if (not handle) then
+          return false
+        else
+          handle:close ()
+          return true
+        end
+      end,
+      function (file, _, mode, env)
+        local handle = assert (io.open (file, 'rb'))
+        local data = handle:read ('*a')
+        handle:close ()
+        return limr.parse (data, '=' .. file, mode, env)
+      end,
+      limr, 'rpath'))
   end
 end
 

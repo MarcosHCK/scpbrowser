@@ -19,6 +19,17 @@
 #include <limr_state_patch.h>
 #include <limr_vm_procs.h>
 
+#define PATCH_FILE (GRESNAME "/lua/patch.lua")
+
+gboolean
+limr_state_load_bytes (gpointer state, GBytes* bytes, GCancellable* cancellable, GError** error);
+void
+limr_state_set_rpath (gpointer state, const gchar*);
+const gchar*
+limr_state_get_rpath (gpointer state);
+int
+_limr_throwrap (lua_State* L);
+
 #define _g_bytes_unref0(var) ((var == NULL) ? NULL : (var = (g_bytes_unref (var), NULL)))
 #define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
 
@@ -167,7 +178,6 @@ int
 limr_proc_resource_lookup (lua_State* L)
 {
   const gchar* resname = NULL;
-  gchar* fullpath = NULL;
   gboolean success = TRUE;
   GError* tmp_err = NULL;
   GBytes* bytes = NULL;
@@ -176,11 +186,8 @@ limr_proc_resource_lookup (lua_State* L)
 
   resname =
   luaL_checkstring (L, 1);
-  fullpath =
-  g_canonicalize_filename (resname, GRESNAME);
   bytes =
-  g_resources_lookup_data (fullpath, 0, &tmp_err);
-  _g_free0 (fullpath);
+  g_resources_lookup_data (resname, 0, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
   {
     _g_bytes_unref0 (bytes);
@@ -201,7 +208,6 @@ limr_proc_resource_load (lua_State* L)
   const gchar* resname = NULL;
   const gchar* mode = NULL;
   gchar* chunkname = NULL;
-  gchar* fullpath = NULL;
   gboolean success = TRUE;
   GError* tmp_err = NULL;
   GBytes* bytes = NULL;
@@ -211,11 +217,8 @@ limr_proc_resource_load (lua_State* L)
 
   resname =
   luaL_checkstring (L, 1);
-  fullpath =
-  g_canonicalize_filename (resname, GRESNAME);
   bytes =
-  g_resources_lookup_data (fullpath, 0, &tmp_err);
-  _g_free0 (fullpath);
+  g_resources_lookup_data (resname, 0, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
   {
     _g_bytes_unref0 (bytes);
@@ -248,6 +251,54 @@ return 1;
 
 G_GNUC_INTERNAL
 int
+limr_proc_resource_parse (lua_State* L)
+{
+  const gchar* resname = NULL;
+  const gchar* mode = NULL;
+  gchar* chunkname = NULL;
+  gpointer instance = NULL;
+  gboolean success = TRUE;
+  GError* tmp_err = NULL;
+  GBytes* bytes = NULL;
+  int result;
+
+  resname =
+  luaL_checkstring (L, 1);
+  bytes =
+  g_resources_lookup_data (resname, 0, &tmp_err);
+  if (G_UNLIKELY (tmp_err != NULL))
+  {
+    _g_bytes_unref0 (bytes);
+    THROW_GERROR (L, tmp_err);
+    g_assert_not_reached ();
+  }
+
+  if (!lua_isnoneornil (L, 2))
+    chunkname = g_strdup (luaL_checkstring (L, 2));
+  else
+    chunkname = g_strconcat ("=", resname, NULL);
+  if (!lua_isnoneornil (L, 3))
+    mode = luaL_checkstring (L, 3);
+  else
+    mode = "t";
+
+  instance =
+  lua_touserdata (L, lua_upvalueindex (1));
+  result =
+  limr_state_load_bytes (instance, bytes, NULL, &tmp_err);
+  _g_bytes_unref0 (bytes);
+  _g_free0 (chunkname);
+  IF_LUA_ERROR (L, result)
+    lua_error (L);
+
+  if (!lua_isnoneornil (L, 4))
+  { lua_pushvalue (L, 4);
+    lua_setfenv (L, -2); }
+return 1;
+}
+
+G_GNUC_INTERNAL
+int
 limr_proc_pack (lua_State* L)
 {
   int i, top = lua_gettop (L);
@@ -257,6 +308,32 @@ limr_proc_pack (lua_State* L)
     lua_pushinteger (L, i);
     lua_pushvalue (L, i);
     lua_settable (L, -3);
+  }
+return 1;
+}
+
+G_GNUC_INTERNAL
+int
+limr_proc_parse (lua_State* L)
+{
+  const gchar* source = NULL;
+  gpointer instance = NULL;
+  gboolean success = TRUE;
+  GError* tmp_err = NULL;
+  GBytes* bytes = NULL;
+  gsize length = 0;
+
+  source = luaL_checklstring (L, 1, &length);
+  bytes = g_bytes_new_static (source, length);
+  instance = lua_touserdata(L, lua_upvalueindex(1));
+
+  success =
+  limr_state_load_bytes (instance, bytes, NULL, &tmp_err);
+  _g_bytes_unref0 (bytes);
+  if (G_UNLIKELY (tmp_err != NULL))
+  {
+    THROW_GERROR (L, tmp_err);
+    g_assert_not_reached ();
   }
 return 1;
 }
@@ -328,16 +405,46 @@ limr_proc_searchpath (lua_State* L)
 return 1;
 }
 
-G_GNUC_INTERNAL
-int
-limr_proc_setfenv (lua_State* L)
+/*
+ * Metamethods
+ *
+ */
+
+static int
+__index (lua_State* L)
 {
-  luaL_checktype (L, 1, LUA_TFUNCTION);
-  luaL_checktype (L, 2, LUA_TTABLE);
-  lua_pushvalue (L, 2);
-  lua_setfenv (L, 1);
-  lua_pushvalue (L, 1);
-return 1;
+  const gchar* idx;
+  idx = luaL_checkstring (L, 2);
+
+  if (!g_strcmp0 (idx, "rpath"))
+  {
+    gpointer state = NULL;
+    const gchar* rpath = NULL;
+
+    state = lua_touserdata (L, lua_upvalueindex (1));
+    rpath = limr_state_get_rpath (state);
+    lua_pushstring (L, rpath);
+    return 1;
+  }
+return 0;
+}
+
+static int
+__newindex (lua_State* L)
+{
+  const gchar* idx;
+  idx = luaL_checkstring (L, 2);
+
+  if (!g_strcmp0 (idx, "rpath"))
+  {
+    gpointer state = NULL;
+    const gchar* rpath = NULL;
+
+    state = lua_touserdata (L, lua_upvalueindex (1));
+    rpath = luaL_checkstring (L, 3);
+    limr_state_set_rpath (state, rpath);
+  }
+return 0;
 }
 
 /*
@@ -347,11 +454,7 @@ return 1;
 
 G_GNUC_INTERNAL
 int
-_limr_throwrap (lua_State* L);
-
-G_GNUC_INTERNAL
-int
-limr_procs_emit (lua_State* L, GError** error)
+limr_procs_emit (lua_State* L, gpointer state, GError** error)
 {
   GBytes* bytes = NULL;
   GError* tmp_err = NULL;
@@ -364,7 +467,7 @@ limr_procs_emit (lua_State* L, GError** error)
    *
    */
 
-  lua_createtable (L, 0, 3);
+  lua_createtable (L, 0, 4);
   {
     lua_pushliteral (L, "resources");
     lua_createtable (L, 0, 3);
@@ -372,25 +475,45 @@ limr_procs_emit (lua_State* L, GError** error)
       lua_pushliteral (L, "exists");
       lua_pushcfunction (L, limr_proc_resource_exists);
       lua_settable (L, -3);           /*  1.1 */
+
       lua_pushliteral (L, "lookup");
       lua_pushcfunction (L, limr_proc_resource_lookup);
       lua_settable (L, -3);           /*  1.2 */
+
       lua_pushliteral (L, "load");
       lua_pushcfunction (L, limr_proc_resource_load);
       lua_settable (L, -3);           /*  1.3 */
+
+      lua_pushliteral (L, "parse");
+      lua_pushlightuserdata (L, state);
+      lua_pushcclosure (L, limr_proc_resource_parse, 1);
+      lua_settable (L, -3);
     }
     lua_settable (L, -3);             /*  1 */
 
     lua_pushliteral (L, "pack");
     lua_pushcfunction (L, limr_proc_pack);
-    lua_settable (L, -3);
+    lua_settable (L, -3);             /*  2 */
+
+    lua_pushliteral (L, "parse");
+    lua_pushlightuserdata (L, state);
+    lua_pushcclosure (L, limr_proc_parse, 1);
+    lua_settable (L, -3);             /*  3 */
+
     lua_pushliteral (L, "searchpath");
     lua_pushcfunction (L, limr_proc_searchpath);
-    lua_settable (L, -3);
-    lua_pushliteral (L, "setfenv");
-    lua_pushcfunction (L, limr_proc_setfenv);
-    lua_settable (L, -3);
+    lua_settable (L, -3);             /*  4 */
   }
+  lua_createtable (L, 0, 1);
+  lua_pushliteral (L, "__index");
+  lua_pushlightuserdata (L, state);
+  lua_pushcclosure (L, __index, 1);
+  lua_settable (L, -3);
+  lua_pushliteral (L, "__newindex");
+  lua_pushlightuserdata (L, state);
+  lua_pushcclosure (L, __newindex, 1);
+  lua_settable (L, -3);
+  lua_setmetatable (L, -2);
   lua_setglobal (L, "limr");
 
   /*
@@ -409,7 +532,7 @@ limr_procs_emit (lua_State* L, GError** error)
    */
 
   bytes =
-  g_resources_lookup_data (GRESNAME "/lua/patch.lua", 0, &tmp_err);
+  g_resources_lookup_data (PATCH_FILE, 0, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
   {
     g_propagate_error (error, tmp_err);
@@ -451,11 +574,11 @@ limr_procs_emit (lua_State* L, GError** error)
   if (G_UNLIKELY (!lua_istable (L, -1)))
   { g_critical ("unexpected patch library return value");
    g_assert_not_reached (); }
-  lua_getfield (L, -1, "executor");
-  if (G_UNLIKELY (!lua_isfunction (L, -1)))
-  { g_critical ("missing mandatory function");
+  lua_getfield (L, -1, "environ");
+  if (G_UNLIKELY (!lua_istable (L, -1)))
+  { g_critical ("missing mandatory environment table");
    g_assert_not_reached (); }
-  lua_setfield (L, LUA_REGISTRYINDEX, LEXECUTOR);
+  lua_setfield (L, LUA_REGISTRYINDEX, LENVIRON);
   lua_pop (L, 1);
 
 _error_:

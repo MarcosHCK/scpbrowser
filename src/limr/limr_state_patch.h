@@ -30,6 +30,8 @@ typedef enum
 
 #define LIMR_STATE_PATCH_SKETCH "__LIMR_SKETCH"
 #define LIMR_STATE_PATCH_BACKLINK "__LIMR_BACKLINK"
+#define LIMR_STATE_PATCH_RROOT "__LIMR_RROOT"
+#define LIMR_STATE_PATCH_RPATH "__LIMR_RPATH"
 
 #if __cplusplus
 extern "C" {
@@ -44,13 +46,7 @@ limr_state_patch_error_quark (void) G_GNUC_CONST;
 
 G_GNUC_INTERNAL
 lua_State*
-limr_state_patch_create_vm (GError** error);
-G_GNUC_INTERNAL
-int
-limr_state_patch_reset_vm (lua_State* L, GError** error);
-G_GNUC_INTERNAL
-int
-limr_state_patch_add_string (lua_State* L, const gchar* string_, gssize length);
+limr_state_patch_create_vm (gpointer state, GError** error);
 G_GNUC_INTERNAL
 int
 limr_state_patch_compile (lua_State* L, const gchar** strings, gint n_strings, GString* source, GError** error);

@@ -49,7 +49,7 @@
     lua_error(L); \
   } G_STMT_END
 
-#define LEXECUTOR "__LIMR_EXECUTOR"
+#define LENVIRON "__LIMR_ENVIRON"
 
 #if __cplusplus
 extern "C" {
@@ -78,7 +78,7 @@ limr_proc_printerr (lua_State* L);
 
 G_GNUC_INTERNAL
 int
-limr_procs_emit (lua_State* L, GError** error);
+limr_procs_emit (lua_State* L, gpointer state, GError** error);
 
 #if __cplusplus
 }

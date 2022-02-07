@@ -29,7 +29,7 @@ G_DEFINE_QUARK
 
 G_GNUC_INTERNAL
 lua_State*
-limr_state_patch_create_vm (GError** error)
+limr_state_patch_create_vm (gpointer state, GError** error)
 {
   lua_State* L = NULL;
   VmData* data = NULL;
@@ -52,7 +52,7 @@ limr_state_patch_create_vm (GError** error)
   stream->handle = data->stdout_;
   lua_pop (L, 2);
 
-  limr_procs_emit (L, &tmp_err);
+  limr_procs_emit (L, state, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
   {
     g_propagate_error (error, tmp_err);
@@ -81,12 +81,12 @@ return 1;
 static int
 _sketch (lua_State* L)
 {
-  int idx1 = lua_upvalueindex (1);
-  int idx2 = lua_upvalueindex (2);
+  lua_getfenv (L, lua_upvalueindex (1));
+  lua_pushvalue (L, lua_upvalueindex (2));
+  lua_setfield (L, -2, "ref_string");
+  lua_pop (L, 1);
 
-  lua_pushvalue (L, idx2);
-  lua_setfield (L, LUA_ENVIRONINDEX, "ref_string");
-  lua_pushvalue (L, idx1);
+  lua_pushvalue (L, lua_upvalueindex (1));
   lua_call (L, 0, 0);
 return 0;
 }
@@ -95,6 +95,7 @@ G_GNUC_INTERNAL
 int
 limr_state_patch_compile (lua_State* L, const gchar** strings, gint n_strings, GString* source, GError** error)
 {
+  int top = lua_gettop (L);
   int result;
 
   result =
@@ -127,9 +128,11 @@ limr_state_patch_compile (lua_State* L, const gchar** strings, gint n_strings, G
   }
 
   {
-    GStringChunk** store;
-    gint i;
+    lua_getfield (L, LUA_REGISTRYINDEX, LENVIRON);
+    g_assert (lua_istable (L, -1));
+    lua_setfenv (L, -2);
 
+    gint i;
     lua_createtable (L, n_strings, 1);
     for (i = 0; i < n_strings; i++)
     {
@@ -144,7 +147,7 @@ limr_state_patch_compile (lua_State* L, const gchar** strings, gint n_strings, G
 
 #if DEVELOPER == 1
   g_assert (lua_isfunction (L, -1));
-  g_assert (lua_gettop (L) == 1);
+  g_assert (lua_gettop (L) == (top + 1));
 #endif // DEVELOPER
 return (result == LUA_OK) ? 0 : 1;
 }
@@ -193,10 +196,9 @@ limr_state_patch_execute (lua_State* L, GOutputStream* stream, GCancellable* can
     lua_pop (L, 1);
   }
 
-  lua_getfield (L, LUA_REGISTRYINDEX, LEXECUTOR);
   lua_pushvalue (L, top);
   result =
-  lua_pcall (L, 1, 0, top + 1);
+  lua_pcall (L, 0, 0, top + 1);
   IF_LUA_ERROR (L, result)
   {
     g_set_error

@@ -23,7 +23,9 @@ namespace Limr
   {
     public const string SKETCH;
     public const string BACKLINK;
-    public static Lua.LuaVM create_vm () throws GLib.Error;
+    public const string RROOT;
+    public const string RPATH;
+    public static Lua.LuaVM create_vm (void* state) throws GLib.Error;
     public static int compile (Lua.LuaVM L, string[] slices, GLib.StringBuilder source) throws GLib.Error;
     public static int execute (Lua.LuaVM L, GLib.OutputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error;
   }

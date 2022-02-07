@@ -20,9 +20,36 @@ namespace Limr
 {
   public class State : GLib.Object, GLib.Initable, GLib.AsyncInitable
   {
-    private Lua.LuaVM L;
+    private Lua.LuaVM L = null;
     private const int bufferSize = 1024;
     private const int chuckSize = 256;
+
+    private string _rroot;
+    public string rroot {
+      get {
+        return _rroot;
+      }
+      set {
+        if (L != null)
+          {
+            L.push_string (value);
+            L.set_field (Lua.PseudoIndex.REGISTRY, Limr.StatePatch.RROOT);
+          }
+        _rroot = value;
+      }}
+    private string _rpath;
+    public string rpath {
+      get {
+        return _rpath;
+      }
+      set{
+        if (L != null)
+          {
+            L.push_string (value);
+            L.set_field (Lua.PseudoIndex.REGISTRY, Limr.StatePatch.RPATH);
+          }
+        _rpath = value;
+      }}
 
   /*
    * Subtypes
@@ -62,12 +89,9 @@ namespace Limr
 
     public bool init (GLib.Cancellable? cancellable = null) throws GLib.Error
     {
-      L = Limr.StatePatch.create_vm ();
-      var idx = Lua.PseudoIndex.REGISTRY;
-      var name = Limr.StatePatch.BACKLINK;
-      L.push_lightuserdata ((void*) this);
-      L.set_field (idx, name);
-      L.set_top (0);
+      L = Limr.StatePatch.create_vm (this);
+      this.rroot = Config.GRESNAME;
+      this.rpath = "./lua/?.html;";
     return true;
     }
 
