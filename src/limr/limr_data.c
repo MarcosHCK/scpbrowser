@@ -1,24 +1,44 @@
 /* Copyright 2021-2025 MarcosHCK
- * This file is part of liblimr.
+ * This file is part of libLimr.
  *
- * liblimr is free software: you can redistribute it and/or modify
+ * libLimr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * liblimr is distributed in the hope that it will be useful,
+ * libLimr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with liblimr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with libLimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 #include <config.h>
-#include <limr_state_patch.h>
-#include <limr_vm_data.h>
+#include <limr_data.h>
 #include <stdio.h>
+
+typedef struct _VmData VmData;
+typedef struct _VmStream VmStream;
+
+#define LVMDATA "__LIMR_VMDATA"
+
+struct _VmData
+{
+  FILE* stdout_;
+  char* buffer;
+  size_t buffsz;
+};
+
+struct _VmStream
+{
+  FILE* handle;
+
+  /*<private>*/
+  /* lua implementation specific */
+  int dummy;
+};
 
 static int
 __gc (lua_State* L)
@@ -32,6 +52,24 @@ __gc (lua_State* L)
   }
 return 0;
 }
+
+G_GNUC_INTERNAL
+VmData*
+_fetch (lua_State* L)
+{
+  VmData* data = NULL;
+  lua_getfield (L, LUA_REGISTRYINDEX, LVMDATA);
+  data = lua_touserdata (L, -1);
+  lua_pop (L, 1);
+return data;
+}
+
+/*
+ * API
+ *
+ */
+
+
 
 G_GNUC_INTERNAL
 int
@@ -54,17 +92,6 @@ return 0;
 }
 
 G_GNUC_INTERNAL
-VmData*
-_limr_data_fetch (lua_State* L)
-{
-  VmData* data = NULL;
-  lua_getfield (L, LUA_REGISTRYINDEX, LVMDATA);
-  data = lua_touserdata (L, -1);
-  lua_pop (L, 1);
-return data;
-}
-
-G_GNUC_INTERNAL
 int
 _limr_data_reset (lua_State* L)
 {
@@ -72,7 +99,7 @@ _limr_data_reset (lua_State* L)
   FILE* stdout_ = NULL;
   VmData* data = NULL;
 
-  data = _limr_data_fetch (L);
+  data = _fetch (L);
   stdout_ = data->stdout_;
 
   success =
@@ -83,5 +110,12 @@ _limr_data_reset (lua_State* L)
     lua_pushfstring (L, "%s", strerror (en));
     lua_error(L);
   }
+return 0;
+}
+
+G_GNUC_INTERNAL
+int
+_limr_data_dump (lua_State* L, GOutputStream* stdout_, GCancellable* cancellable, GError** error)
+{
 return 0;
 }

@@ -71,7 +71,7 @@ _scp_browser_compile_jhtml (ScpBrowser* self, GBytes* input_, const gchar* path,
  */
 
   success =
-  limr_state_parse (state, input_, endpoint, cancellable, &tmp_err);
+  limr_state_execute_bytes (state, input_, endpoint, cancellable, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
   {
     g_propagate_error (error, tmp_err);

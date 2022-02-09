@@ -45,7 +45,7 @@ do
     return
     (source or nil) and
     setmetatable ({}, {
-      __metatable = "metatable",
+      __metatable = "protected",
       __index = source,
     })
   end

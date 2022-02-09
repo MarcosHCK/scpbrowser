@@ -15,52 +15,42 @@
  * along with libLimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include <config.h>
-#include <glib-object.h>
-#include <limr_state_patch.h>
+#ifndef __LIMR_PROC__
+#define __LIMR_PROC__ 1
+#include <glib.h>
 
-GType
-limr_state_get_type (void) G_GNUC_CONST;
-#define LIMR_IS_STATE(var) (G_TYPE_CHECK_INSTANCE_TYPE ((var), limr_state_get_type ()))
+#if __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-/*
- * API
- *
- */
-
-G_GNUC_INTERNAL
-int
-_limr_vm_init (lua_State* L)
-{
-  gpointer state = lua_touserdata (L, 1);
-  g_assert (LIMR_IS_STATE (state));
-
-  luaL_openlibs (L);
-  lua_pushvalue (L, 1);
-  _limr_data_init (L);
-  _limr_proc_init (L);
-return 0;
-}
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 
 G_GNUC_INTERNAL
 int
-_limr_vm_setfenv (lua_State* L, int idx)
-{
-  return lua_setfenv (L, idx);
-}
-
-G_GNUC_NORETURN
+_limr_proc_init (lua_State* L);
 G_GNUC_INTERNAL
-void
-_limr_vm_throwgerror (lua_State* L, GError* error)
-{
-  lua_pushfstring
-  (L,
-   "%s: %i: %s",
-   g_quark_to_string (error->domain),
-   error->code,
-   error->message);
-  g_error_free (error);
-  lua_error (L);
-for (;;);
+int
+_limr_proc_print (lua_State* L);
+G_GNUC_INTERNAL
+int
+_limr_proc_printerr (lua_State* L);
+G_GNUC_INTERNAL
+int
+_limr_proc_pack (lua_State* L);
+G_GNUC_INTERNAL
+int
+_limr_proc_resources_exists (lua_State* L);
+G_GNUC_INTERNAL
+int
+_limr_proc_resources_lookup (lua_State* L);
+G_GNUC_INTERNAL
+int
+_limr_proc_resources_load (lua_State* L);
+
+#if __cplusplus
 }
+#endif // __cplusplus
+
+#endif // __LIMR_PROC__

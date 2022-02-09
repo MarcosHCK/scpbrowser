@@ -15,11 +15,9 @@
  * along with libLimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef __LIMR_STATE_PATCH__
-#define __LIMR_STATE_PATCH__ 1
-#include <glib.h>
-
-#define LENVIRON "__LIMR_ENVIRON"
+#ifndef __LIMR_PARSE__
+#define __LIMR_PARSE__ 1
+#include <gio/gio.h>
 
 #if __cplusplus
 extern "C" {
@@ -31,17 +29,10 @@ extern "C" {
 
 G_GNUC_INTERNAL
 int
-_limr_vm_init (lua_State* L);
-G_GNUC_INTERNAL
-int
-_limr_vm_setfenv (lua_State* L, int idx);
-G_GNUC_NORETURN
-G_GNUC_INTERNAL
-void
-_limr_vm_throwgerror (lua_State* L, GError* error);
+_limr_parser_loadbufferx (lua_State* L, guint8* source, gsize source_len, const gchar* chunkname, const gchar* mode);
 
 #if __cplusplus
 }
 #endif // __cplusplus
 
-#endif // __LIMR_STATE_PATCH__
+#endif // __LIMR_PARSE__

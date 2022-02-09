@@ -1,18 +1,18 @@
 # Copyright 2021-2025 MarcosHCK
-# This file is part of scpbrowser.
+# This file is part of libLimr.
 #
-# scpbrowser is free software: you can redistribute it and/or modify
+# libLimr is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# scpbrowser is distributed in the hope that it will be useful,
+# libLimr is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with scpbrowser. If not, see <http://www.gnu.org/licenses/>.
+# along with libLimr. If not, see <http://www.gnu.org/licenses/>.
 #
 
 #
@@ -46,9 +46,11 @@ EXTRA_DIST+=\
   vapi/config.vapi \
   vapi/patch.deps \
   vapi/patch.vapi \
+  limr_data.h \
+  limr_parser_patch.h \
+  limr_proc.h \
   limr_state_patch.h \
-  limr_vm_data.h \
-  limr_vm_procs.h \
+  limr_xpcall.h \
   $(VOID)
 
 #
@@ -58,10 +60,13 @@ EXTRA_DIST+=\
 pkglib_LTLIBRARIES=liblimr.la
 
 liblimr_la_SOURCES=\
+  limr_data.c \
+  limr_parser_patch.c \
+  limr_parser.vala \
+  limr_proc.c \
   limr_state_patch.c \
   limr_state.vala \
-  limr_vm_data.c \
-  limr_vm_procs.c \
+  limr_xpcall.c \
   $(VOID)
 liblimr_la_CFLAGS=\
   $(GIO_CFLAGS) \
