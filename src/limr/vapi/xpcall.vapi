@@ -15,30 +15,29 @@
  * along with libLimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef __LIMR_VM_DATA__
-#define __LIMR_VM_DATA__ 1
-#include <gio/gio.h>
 
-#if __cplusplus
-extern "C" {
-#endif // __cplusplus
+namespace Limr
+{
+  [CCode (cheader_filename = "limr_xpcall.h")]
+  public class Xpcall
+  {
+    [NoReturn]
+    [CCode (cname = "_limr_throwgerror")]
+    public static int throwgerror (Lua.LuaVM L, GLib.Error e);
+    [CCode (cname = "_limr_throwrap")]
+    public static int throwrap (Lua.LuaVM L);
+    [CCode (cname = "_limr_xpcall")]
+    public static bool xpcall (Lua.LuaVM L, int narguments, int nreturns) throws Limr.XpcallError;
+  }
 
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-
-G_GNUC_INTERNAL
-int
-_limr_data_init (lua_State* L);
-G_GNUC_INTERNAL
-int
-_limr_data_reset (lua_State* L);
-G_GNUC_INTERNAL
-int
-_limr_data_dump (lua_State* L, GOutputStream* stdout_, GCancellable* cancellable, GError** error);
-
-#if __cplusplus
+  [CCode (cheader_filename = "limr_xpcall.h")]
+  public errordomain XpcallError
+  {
+    FAILED,
+    SYNTAX,
+    RUN,
+    RECURSIVE,
+    MEMORY;
+    public static GLib.Quark quark ();
+  }
 }
-#endif // __cplusplus
-
-#endif // __LIMR_VM_DATA__

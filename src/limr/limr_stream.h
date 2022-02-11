@@ -15,42 +15,42 @@
  * along with libLimr.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef __LIMR_PROC__
-#define __LIMR_PROC__ 1
-#include <glib.h>
+#ifndef __LIMR_STREAM__
+#define __LIMR_STREAM__ 1
+#include <gmodule.h>
+#include <private.h>
+#include <stdio.h>
+
+typedef struct _LimrStream LimrStream;
+typedef struct _LStream LStream;
 
 #if __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+struct _LStream
+{
+  FILE* handle;
+
+  /* Lua-specific data */
+  int _private_;
+};
 
 G_GNUC_INTERNAL
-int
-_limr_proc_init (lua_State* L);
+void
+_limr_stream_new (lua_State* L);
 G_GNUC_INTERNAL
-int
-_limr_proc_print (lua_State* L);
+void
+_limr_stream_setup (lua_State* L, int env);
 G_GNUC_INTERNAL
-int
-_limr_proc_printerr (lua_State* L);
+void
+_limr_stream_close (lua_State* L, int env);
 G_GNUC_INTERNAL
-int
-_limr_proc_pack (lua_State* L);
-G_GNUC_INTERNAL
-int
-_limr_proc_resources_exists (lua_State* L);
-G_GNUC_INTERNAL
-int
-_limr_proc_resources_lookup (lua_State* L);
-G_GNUC_INTERNAL
-int
-_limr_proc_resources_load (lua_State* L);
+GBytes*
+_limr_stream_dump (lua_State* L);
 
 #if __cplusplus
 }
 #endif // __cplusplus
 
-#endif // __LIMR_PROC__
+#endif // __LIMR_STREAM__

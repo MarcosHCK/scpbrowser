@@ -22,6 +22,22 @@ G_DEFINE_QUARK
 (limr-xpcall-error-quark,
  limr_xpcall_error);
 
+G_GNUC_NORETURN
+G_GNUC_INTERNAL
+void
+_limr_throwgerror (lua_State* L, GError* error)
+{
+  lua_pushfstring
+  (L,
+   "%s: %i: %s",
+   g_quark_to_string (error->domain),
+   error->code,
+   error->message);
+  g_error_free (error);
+  lua_error (L);
+for (;;);
+}
+
 G_GNUC_INTERNAL
 int
 _limr_throwrap (lua_State* L)
@@ -65,6 +81,10 @@ _limr_xpcall (lua_State* L, int nargs, int nresults, GError** error)
      LIMR_XPCALL_ERROR_RUN,
      "%s",
      lua_tostring (L, -1));
+    lua_pop (L, 1);
+#if DEBUG == 1
+    g_assert (lua_gettop (L) == lower);
+#endif // DEBUG
     return -1;
   case LUA_ERRERR:
     g_set_error
@@ -73,6 +93,10 @@ _limr_xpcall (lua_State* L, int nargs, int nresults, GError** error)
      LIMR_XPCALL_ERROR_RECURSIVE,
      "recursive error: %s",
      lua_tostring (L, -1));
+    lua_pop (L, 1);
+#if DEBUG == 1
+    g_assert (lua_gettop (L) == lower);
+#endif // DEBUG
     return -1;
   case LUA_ERRMEM:
     g_set_error_literal
@@ -81,9 +105,17 @@ _limr_xpcall (lua_State* L, int nargs, int nresults, GError** error)
      LIMR_XPCALL_ERROR_MEMORY,
      "Lua thread out of memory");
     g_warning ("Lua thread out of memory");
+    lua_settop (L, lower);
+#if DEBUG == 1
+    g_assert (lua_gettop (L) == lower);
+#endif // DEBUG
     return -1;
   default:
     g_assert (result == LUA_OK);
+#if DEBUG == 1
+    if (nresults != LUA_MULTRET)
+    g_assert (lua_gettop (L) == lower + nresults);
+#endif // DEBUG
     return result;
   }
 return -1;

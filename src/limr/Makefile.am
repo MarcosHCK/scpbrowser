@@ -46,10 +46,13 @@ EXTRA_DIST+=\
   vapi/config.vapi \
   vapi/patch.deps \
   vapi/patch.vapi \
-  limr_data.h \
-  limr_parser_patch.h \
-  limr_proc.h \
-  limr_state_patch.h \
+  vapi/stream.deps \
+  vapi/stream.vapi \
+  vapi/xpcall.deps \
+  vapi/xpcall.vapi \
+  liblimr.h \
+  limr_patch.h \
+  limr_stream.h \
   limr_xpcall.h \
   $(VOID)
 
@@ -57,15 +60,14 @@ EXTRA_DIST+=\
 # Binaries and libraries
 #
 
-pkglib_LTLIBRARIES=liblimr.la
+noinst_LTLIBRARIES=liblimr.la
 
 liblimr_la_SOURCES=\
-  limr_data.c \
-  limr_parser_patch.c \
+  liblimr.c \
+  limr_host.vala \
   limr_parser.vala \
-  limr_proc.c \
-  limr_state_patch.c \
-  limr_state.vala \
+  limr_patch.c \
+  limr_stream.c \
   limr_xpcall.c \
   $(VOID)
 liblimr_la_CFLAGS=\
@@ -74,9 +76,8 @@ liblimr_la_CFLAGS=\
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
   $(LUA_CFLAGS) \
-  -DG_LOG_DOMAIN=\"LibLimr\" \
+  -DG_LOG_DOMAIN=\"Limr\" \
   -DABSTOPBUILDDIR=\"${abs_top_builddir}\" \
-  -DGAPPNAME=\"org.hck.${PACKAGE_NAME}.limr\" \
   -DGRESNAME=\"/org/hck/${PACKAGE_NAME}/limr\" \
   -D__LIBLIMR_INSIDE__=1 \
   $(VOID)
@@ -106,6 +107,8 @@ AM_VALAFLAGS=\
   --header liblimr.h \
   --library liblimr \
   --pkg config \
+  --pkg patch \
+  --pkg xpcall \
   -D DEBUG=${DEBUG} \
   -D DEVELOPER=${DEVELOPER} \
   $(VOID)

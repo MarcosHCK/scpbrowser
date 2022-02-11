@@ -20,5 +20,5 @@ liblimr-*.so*
 
 liblimr.h
 liblimr.vapi
+limr_host.c
 limr_parser.c
-limr_state.c

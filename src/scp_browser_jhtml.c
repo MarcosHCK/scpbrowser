@@ -17,7 +17,7 @@
  */
 #include <config.h>
 #include <scp_browser_internl.h>
-#include <limr/liblimr.h>
+#include <liblimr.h>
 
 G_DEFINE_QUARK
 (scp-jhtml-parser-private-data,
@@ -28,7 +28,6 @@ GBytes*
 _scp_browser_compile_jhtml (ScpBrowser* self, GBytes* input_, const gchar* path, GError** error)
 {
   GCancellable* cancellable = NULL;
-  GOutputStream* endpoint = NULL;
   gboolean success = TRUE;
   GError* tmp_err = NULL;
   GBytes* bytes = NULL;
@@ -39,73 +38,44 @@ _scp_browser_compile_jhtml (ScpBrowser* self, GBytes* input_, const gchar* path,
  */
 
   static
-  LimrState* state = NULL;
-  if (G_UNLIKELY (state == NULL))
+  LimrHost* host = NULL;
+  if (G_UNLIKELY (host == NULL))
   {
-    state =
-    limr_state_new (cancellable, &tmp_err);
+    host =
+    limr_host_new (cancellable, &tmp_err);
     if (G_UNLIKELY (tmp_err != NULL))
     {
       g_propagate_error (error, tmp_err);
-      g_clear_object (&state);
+      g_clear_object (&host);
       return NULL;
     }
 
     g_object_set_qdata_full
     (G_OBJECT (self),
      state_store_quark (),
-     g_object_ref (state),
+     g_object_ref (host),
      g_object_unref);
   }
   else
   {
-    g_object_ref (state);
+    g_object_ref (host);
   }
-
-  endpoint =
-  g_memory_output_stream_new_resizable ();
 
 /*
  * Execute code
  *
  */
 
-  success =
-  limr_state_execute_bytes (state, input_, endpoint, cancellable, &tmp_err);
-  if (G_UNLIKELY (tmp_err != NULL))
-  {
-    g_propagate_error (error, tmp_err);
-    goto_error ();
-  }
-
-/*
- * Access data
- *
- */
-
-  success =
-  g_output_stream_close (endpoint, cancellable, &tmp_err);
-  if (G_UNLIKELY (tmp_err != NULL))
-  {
-    g_propagate_error (error, tmp_err);
-    goto_error ();
-  }
-
   bytes =
-  g_memory_output_stream_steal_as_bytes (G_MEMORY_OUTPUT_STREAM (endpoint));
-  if (G_UNLIKELY (bytes == NULL))
+  limr_host_parse (host, input_, cancellable, &tmp_err);
+  if (G_UNLIKELY (tmp_err != NULL))
   {
-    g_set_error_literal
-    (error,
-     SCP_BROWSER_ERROR,
-     SCP_BROWSER_ERROR_JHTML_COMPILING,
-     "Empty stream as output");
+    g_propagate_error (error, tmp_err);
     goto_error ();
   }
 
 _error_:
-  _g_object_unref0 (endpoint);
-  _g_object_unref0 (state);
+  _g_object_unref0 (host);
   if (G_UNLIKELY (success == FALSE))
     _g_bytes_unref0 (bytes);
 return bytes;

@@ -24,6 +24,7 @@
 typedef enum
 {
   LIMR_XPCALL_ERROR_FAILED,
+  LIMR_XPCALL_ERROR_SYNTAX,
   LIMR_XPCALL_ERROR_RUN,
   LIMR_XPCALL_ERROR_RECURSIVE,
   LIMR_XPCALL_ERROR_MEMORY,
@@ -40,6 +41,10 @@ extern "C" {
 GQuark
 limr_xpcall_error_quark (void) G_GNUC_CONST;
 
+G_GNUC_NORETURN
+G_GNUC_INTERNAL
+void
+_limr_throwgerror (lua_State* L, GError* error);
 G_GNUC_INTERNAL
 int
 _limr_throwrap (lua_State* L);

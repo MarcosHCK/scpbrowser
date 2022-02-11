@@ -117,6 +117,7 @@ libscpbrowser_la_CFLAGS=\
   $(GTK_CFLAGS) \
   $(LIBSASS_CFLAGS) \
   $(WEBKIT2_CFLAGS) \
+  -Ilimr/ \
   -DABSTOPBUILDDIR=\"${abs_top_builddir}\" \
   -DGIRDIR=\"${girdir}\" \
   -DLOCALEDIR=\"${localedir}\" \

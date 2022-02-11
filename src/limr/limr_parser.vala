@@ -22,7 +22,6 @@ namespace Limr
   {
     private const string sign = "lua";
     private const int bufferSize = 1024;
-    private const int chunkSize = 256;
 
     public struct State
     {
@@ -39,16 +38,18 @@ namespace Limr
     private delegate void Emitter (uint8 c);
     private delegate void Flusher ();
 
-    internal static int parse_stream_internal (Lua.LuaVM L, GLib.InputStream stream, string chunkname, string mode) throws GLib.Error
+  /*
+   * API
+   *
+   */
+
+    internal static bool parse (Lua.LuaVM L, Limr.Patch.ReaderFunc reader, GLib.StringBuilder source, GLib.StringChunk table, GenericArray<unowned string> slices)
     {
-      var buffer = new uint8[bufferSize];
-      var source = new GLib.StringBuilder.sized (bufferSize);
       var databuf = new GLib.StringBuilder.sized (bufferSize);
       var scriptbuf = new GLib.StringBuilder.sized (bufferSize);
-      var table = new GLib.StringChunk (chunkSize);
-      var slices = new GenericArray<unowned string> ();
       var state = Parser.State ();
-      size_t i, read = 0;
+      unowned char[] buffer;
+      size_t i;
       uint8 c;
 
       /*
@@ -64,9 +65,9 @@ namespace Limr
 
       flushemit = (() =>
       {
-        var idx = slices.data.length + 1;
+        var idx = slices.data.length;
         slices.add (table.insert_len (databuf.str, databuf.len));
-        source.append_printf ("do io.stdout:write (ref_string (%i)); end;\r\n", idx);
+        source.append_printf ("do ref_string (%i); end;\r\n", idx);
         databuf.truncate (0);
       });
 
@@ -120,9 +121,17 @@ namespace Limr
 
       do
       {
-        read =
-        stream.read (buffer, null);
-        for (i = 0; i < read; i++)
+        try {
+          buffer = Limr.Patch.preader (L, reader);
+        } catch (GLib.Error e) {
+          source.assign (e.message);
+          return false;
+        }
+
+        if (buffer == null || buffer.length == 0)
+          break;
+
+        for (i = 0; i < buffer.length; i++)
         {
           c = buffer[i];
           if (state.inmacro)
@@ -177,51 +186,11 @@ namespace Limr
           }
         }
       }
-      while (read != 0);
+      while (true);
 
       flushemit ();
       flushmacro ();
-
-      /*
-       * Load
-       *
-       */
-
-      int result =
-      Limr.ParserPatch.loadbufferx (L, source.data, chunkname, mode);
-    return result;
-    }
-
-    internal static int parse_bytes_internal (Lua.LuaVM L, GLib.Bytes bytes, string chunkname, string mode) throws GLib.Error
-    {
-      GLib.InputStream stream = new GLib.MemoryInputStream.from_bytes (bytes);
-    return parse_stream (L, stream, chunkname, mode);
-    }
-
-    [CCode (cname = "_limr_parser_parse_stream")]
-    internal static int parse_stream (Lua.LuaVM L, GLib.InputStream stream, string chunkname, string mode) throws GLib.Error
-    {
-      try {
-        int result =
-        parse_stream_internal (L, stream, chunkname, mode);
-        return result;
-      } catch (GLib.Error e)
-      {
-        Limr.StatePatch.throwgerror (L, e);
-      }
-    }
-
-    [CCode (cname = "_limr_parser_parse_bytes")]
-    internal static int parse_bytes (Lua.LuaVM L, GLib.Bytes bytes, string chunkname, string mode) throws GLib.Error
-    {
-      try {
-        int result =
-        parse_bytes_internal (L, bytes, chunkname, mode);
-        return result;
-      } catch (GLib.Error e)
-      {
-        Limr.StatePatch.throwgerror (L, e);
-      }
+    return true;
     }
   }
 }
