@@ -57,25 +57,28 @@ return 0;
 
 G_GNUC_INTERNAL
 void
+_limr_stream_init (lua_State* L)
+{
+  luaL_newmetatable (L, LMETA);
+  {
+    lua_pushliteral(L, "__metatable");
+    lua_pushliteral(L, "protected");
+    lua_settable(L, -3);
+    lua_pushliteral (L, "__gc");
+    lua_pushcfunction (L, __gc);
+    lua_settable (L, -3);
+  }
+  lua_pop (L, 1);
+}
+
+G_GNUC_INTERNAL
+void
 _limr_stream_new (lua_State* L)
 {
-  LimrStream* stream = NULL;
+#if DEBUG == 1
   int top = lua_gettop (L);
-  static int meta = 0;
-
-  if (G_UNLIKELY (meta == 0))
-  {
-    luaL_newmetatable (L, LMETA);
-    {
-      lua_pushliteral(L, "__metatable");
-      lua_pushliteral(L, "protected");
-      lua_settable(L, -3);
-      lua_pushliteral (L, "__gc");
-      lua_pushcfunction (L, __gc);
-      lua_settable (L, -3);
-    }
-    lua_pop (L, 1);
-  }
+#endif // DEBUG
+  LimrStream* stream = NULL;
 
   stream =
   lua_newuserdata (L, sizeof (LimrStream));
@@ -96,9 +99,11 @@ _limr_stream_setup (lua_State* L, int env)
 {
   LimrStream* stream = NULL;
   LStream* lstream = NULL;
-  int top = lua_gettop (L);
   int idx = RELADDR (L, -1);
       env = RELADDR (L, env);
+#if DEBUG == 1
+  int top = lua_gettop (L);
+#endif // DEBUG
 
   stream = luaL_checkudata (L, idx, LMETA);
 
@@ -139,9 +144,11 @@ _limr_stream_close (lua_State* L, int env)
 {
   LimrStream* stream = NULL;
   LStream* lstream = NULL;
-  int top = lua_gettop (L);
   int idx = RELADDR (L, -1);
       env = RELADDR (L, env);
+#if DEBUG == 1
+  int top = lua_gettop (L);
+#endif // DEBUG
 
   stream =
   luaL_checkudata (L, idx, LMETA);
@@ -174,8 +181,10 @@ _limr_stream_dump (lua_State* L)
   LimrStream* stream = NULL;
   gpointer buffer = NULL;
   GBytes* bytes = NULL;
-  int top = lua_gettop (L);
   int idx = RELADDR (L, -1);
+#if DEBUG == 1
+  int top = lua_gettop (L);
+#endif // DEBUG
 
   stream =
   luaL_checkudata (L, idx, LMETA);

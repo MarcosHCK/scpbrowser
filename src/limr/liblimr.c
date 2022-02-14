@@ -19,8 +19,19 @@
 #include <gio/gio.h>
 #include <gmodule.h>
 #include <limr_patch.h>
+#include <limr_stream.h>
 #include <limr_xpcall.h>
 #include <private.h>
+
+G_DEFINE_QUARK
+(limr-stream-reader-buffer-quark,
+ _limr_stream_reader_buffer);
+G_DEFINE_QUARK
+(limr-stream-reader-chunkname-quark,
+ _limr_stream_reader_chunkname);
+
+#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
+#define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
 
 /*
  * Functions
@@ -117,11 +128,100 @@ lib_load (lua_State* L)
 return 0;
 }
 
+static const char*
+_stream_reader (lua_State* L, void* ud, size_t* length)
+{
+  GInputStream* stream = ud;
+  const int bufferSize = 1024;
+  GError* tmp_err = NULL;
+  gchar* buffer = NULL;
+  gsize read;
+
+  buffer =
+  g_object_get_qdata
+  (G_OBJECT (stream),
+   _limr_stream_reader_buffer_quark ());
+  if (G_UNLIKELY (buffer == NULL))
+  {
+    buffer = g_malloc (sizeof (bufferSize));
+    g_object_set_qdata_full
+    (G_OBJECT (stream),
+     _limr_stream_reader_buffer_quark (),
+     buffer,
+     (GDestroyNotify)
+     g_free);
+  }
+
+  read =
+  g_input_stream_read (stream, buffer, bufferSize, NULL, &tmp_err);
+  if (G_UNLIKELY (tmp_err != NULL))
+  {
+    _limr_throwgerror (L, tmp_err);
+    g_assert_not_reached ();
+  }
+  else
+  {
+    *length = (size_t) read;
+  }
+return buffer;
+}
+
 static int
 lib_include (lua_State* L)
 {
-  const gchar* name = luaL_checkstring (L, 1);
-return 0;
+#if DEBUG == 1
+  int top = lua_gettop (L);
+#endif // DEBUG
+  GInputStream* stream = NULL;
+  const gchar* chunkname = NULL;
+  const gchar* name = NULL;
+  gchar* basename = NULL;
+  GError* tmp_err = NULL;
+  GFile* file = NULL;
+  int result = 0;
+
+  name = luaL_checkstring (L, 1);
+  file = g_file_new_for_commandline_arg (name);
+  stream = (GInputStream*)
+  g_file_read (file, NULL, &tmp_err);
+  if (G_UNLIKELY (tmp_err != NULL))
+  { _g_object_unref0 (stream);
+    _g_object_unref0 (file);
+    _limr_throwgerror (L, tmp_err); }
+
+  basename = g_file_get_basename (file);
+  if (basename == NULL)
+    basename = g_strdup (name);
+  _g_object_unref0 (file);
+  g_object_set_qdata_full
+  (G_OBJECT (stream),
+   _limr_stream_reader_chunkname_quark (),
+   basename,
+   (GDestroyNotify)
+   g_free);
+
+  result =
+  _limr_loadx (L, _stream_reader, stream, basename, NULL);
+  g_object_unref (stream);
+
+  switch (result)
+  {
+  case LUA_ERRSYNTAX:
+    lua_error (L);
+    break;
+  case LUA_ERRMEM:
+    luaL_error (L, "Out of memory");
+    break;
+  default:
+    g_assert (result == LUA_OK);
+    break;
+  }
+
+#if DEBUG == 1
+  g_assert (lua_gettop (L) == (top + 1));
+#endif // DEBUG
+  lua_call (L, 0, LUA_MULTRET);
+return lua_gettop (L) - top;
 }
 
 /*
@@ -133,7 +233,7 @@ static luaL_Reg
 functions[] =
 {
   {"load", lib_load},
-  {"incluce", lib_include},
+  {"include", lib_include},
 };
 
 /*
@@ -196,6 +296,7 @@ G_MODULE_EXPORT
 int
 luaopen_liblimr (lua_State* L)
 {
+  _limr_stream_init (L);
 #if LUA_VERSION_NUM >= 502
   luaL_newlib (L, functions);
 #else // LUA_VERSION_NUM < 502

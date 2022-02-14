@@ -31,6 +31,7 @@ do
   local environ;
   environ = {
     print = print,
+    include = limr.include,
     io = proxify (io),
   }
 

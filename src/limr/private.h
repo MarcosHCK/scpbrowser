@@ -17,7 +17,7 @@
  */
 #ifndef __LIBLIMR_PRIVATE__
 #define __LIBLIMR_PRIVATE__ 1
-#include <glib-object.h>
+#include <gmodule.h>
 
 #if __cplusplus
 extern "C" {

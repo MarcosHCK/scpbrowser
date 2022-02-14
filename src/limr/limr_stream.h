@@ -38,6 +38,9 @@ struct _LStream
 
 G_GNUC_INTERNAL
 void
+_limr_stream_init (lua_State* L);
+G_GNUC_INTERNAL
+void
 _limr_stream_new (lua_State* L);
 G_GNUC_INTERNAL
 void
