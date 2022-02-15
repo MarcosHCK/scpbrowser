@@ -22,6 +22,33 @@ namespace Limr
   {
     private Lua.LuaVM L = null;
 
+    private string _include_path;
+    public string include_path
+    {
+      get
+      {
+        L.push_literal (Library.MACROS);
+        L.get_table (Lua.PseudoIndex.REGISTRY);
+        L.push_literal ("path");
+        L.get_table (-2);
+
+        _include_path =
+        L.to_string (-1);
+        L.pop (2);
+      return _include_path;
+      }
+      set
+      {
+        _include_path = value;
+        L.push_literal (Library.MACROS);
+        L.get_table (Lua.PseudoIndex.REGISTRY);
+        L.push_literal ("path");
+        L.push_string (_include_path);
+        L.set_table (-3);
+        L.pop (1);
+      }
+    }
+
   /*
    * Initialization
    *
@@ -53,15 +80,17 @@ namespace Limr
     public GLib.Bytes parse (GLib.Bytes code, GLib.Cancellable? cancellable = null) throws GLib.Error
     {
       var stream = new GLib.MemoryInputStream.from_bytes (code);
+#if DEBUG == 1
+      int top = L.get_top ();
+#endif // DEBUG
       const int bufferSize = 256;
       var buffer = new uint8[bufferSize];
       GLib.Bytes bytes = null;
-      int top = L.get_top ();
       size_t read = 0;
 
       Patch.loadx
       (L, () =>
-      {
+       {
         try
         {
           read =
@@ -72,18 +101,18 @@ namespace Limr
         } catch (GLib.Error e) {
           Limr.Xpcall.throwgerror (L, e);
         }
-      },
-      "=sketch",
-      "t");
+       },
+       "=sketch",
+       "t");
 
       if (L.is_function (-1))
       {
         try {
           bytes = Limr.Patch.run_sketch (L);
         } catch (GLib.Error e) {
-#if DEVELOPER == 1
+#if DEBUG == 1
           assert (L.get_top () == top);
-#endif // DEVELOPER
+#endif // DEBUG
           throw e;
         }
       }
@@ -94,10 +123,40 @@ namespace Limr
         L.pop (1);
         throw e;
       }
-#if DEVELOPER == 1
+#if DEBUG == 1
       assert (L.get_top () == top);
-#endif // DEVELOPER
+#endif // DEBUG
     return bytes;
+    }
+
+    public bool inject (GLib.Bytes code, GLib.Cancellable? cancellable = null) throws GLib.Error
+    {
+#if DEBUG == 1
+      int top = L.get_top ();
+#endif // DEBUG
+      LuaPatch.loadbufferx (L, (char[]) code.get_data (), "=inject", "bt");
+      if (L.is_function (-1))
+      {
+        try {
+          Xpcall.xpcall (L, 0, 0);
+        } catch (GLib.Error e) {
+#if DEBUG == 1
+          assert (L.get_top () == top);
+#endif // DEBUG
+          throw e;
+        }
+      }
+      else
+      {
+        var err = L.to_string (-1);
+        var e = new Limr.XpcallError.SYNTAX (err);
+        L.pop (1);
+        throw e;
+      }
+#if DEBUG == 1
+      assert (L.get_top () == top);
+#endif // DEBUG
+    return true;
     }
 
     /*

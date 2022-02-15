@@ -36,8 +36,23 @@ namespace Limr
   }
 
   [CCode (cheader_filename = "private.h")]
+  public class LuaPatch : GLib.Object
+  {
+    [CCode (cname = "luaL_loadbufferx")]
+    public static void loadbufferx (Lua.LuaVM L, char[] buffer, string? chunkname = null, string? mode = null);
+  }
+
+  [CCode (cheader_filename = "private.h")]
   public class Library : GLib.Object
   {
+    [CCode (cname = "MACROS")]
+    public const string MACROS;
+    [CCode (cname = "MACROS_SEARCHERS")]
+    public const string MACROS_SEARCHERS;
+    [CCode (cname = "lua_istrue")]
+    public bool istrue (Lua.LuaVM L, int idx);
+    [CCode (cname = "lua_isfalse")]
+    public bool isfalse (Lua.LuaVM L, int idx);
     [CCode (cname = "luaopen_liblimr")]
     public static int open (Lua.LuaVM L);
   }

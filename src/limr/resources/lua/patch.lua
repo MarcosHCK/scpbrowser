@@ -18,7 +18,10 @@
  *]]
 local limr = ...
 
+--- Patch limr
 do
+  local environ;
+
   assert (type (limr) == 'table')
   local function proxify(table_)
     return setmetatable ({}, {
@@ -28,14 +31,45 @@ do
     })
   end
 
-  local environ;
-  environ = {
-    print = print,
+  environ =
+  {
+    assert = assert,
+    bit = bit,
+    bits = bits,
+    bit32 = bit32,
+    bit64 = bit64,
+    checkArg = checkArg,
+    collectgarbage = collectgarbage,
+    coroutine = coroutine,
+    error = error,
+    getfenv = getfenv,
+    getmetatable = getmetatable,
     include = limr.include,
-    io = proxify (io),
+    io = io,
+    ipairs = ipairs,
+    math = math,
+    macros = limr.macros,
+    next = next,
+    package = package,
+    pairs = pairs,
+    pcall = pcall,
+    rawequal = rawequal,
+    rawget = rawget,
+    rawlen = rawlen,
+    rawset = rawset,
+    select = select,
+    setfenv = setfenv,
+    setmetatable = setmetatable,
+    string = string,
+    table = table,
+    tostring = tostring,
+    tonumber = tonumber,
+    type = type,
+    xpcall = xpcall,
   }
 
-  setmetatable (limr, {
+  setmetatable (limr,
+  {
     __index = function (_, key)
       if (key == 'environ') then
         return proxify (environ)

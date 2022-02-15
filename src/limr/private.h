@@ -27,6 +27,18 @@ extern "C" {
 #include <lauxlib.h>
 #include <lualib.h>
 
+G_GNUC_INTERNAL
+gboolean
+lua_istrue (lua_State* L, int idx);
+
+#define LIBRARY           "__LIMR_LIBRARY"
+#define MACROS            "__LIMR_MACROS"
+#define MACROS_PRELOAD    "__LIMR_MACROS_PRELOAD"
+#define MACROS_SEARCHERS  "__LIMR_MACROS_SEARCHERS"
+
+#define lua_istrue(L,idx) (lua_istrue ((L),(idx)))
+#define lua_isfalse(L,idx) (!lua_istrue ((L),(idx)))
+
 G_MODULE_EXPORT
 int
 luaopen_liblimr (lua_State* L);

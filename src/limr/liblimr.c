@@ -34,7 +34,8 @@ G_DEFINE_QUARK
 #define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
 
 /*
- * Functions
+ * API
+ * functions
  *
  */
 
@@ -143,7 +144,7 @@ _stream_reader (lua_State* L, void* ud, size_t* length)
    _limr_stream_reader_buffer_quark ());
   if (G_UNLIKELY (buffer == NULL))
   {
-    buffer = g_malloc (sizeof (bufferSize));
+    buffer = g_malloc (bufferSize);
     g_object_set_qdata_full
     (G_OBJECT (stream),
      _limr_stream_reader_buffer_quark (),
@@ -167,13 +168,14 @@ return buffer;
 }
 
 static int
-lib_include (lua_State* L)
+lib_loadfile (lua_State* L)
 {
 #if DEBUG == 1
   int top = lua_gettop (L);
 #endif // DEBUG
   GInputStream* stream = NULL;
   const gchar* chunkname = NULL;
+  const gchar* mode = NULL;
   const gchar* name = NULL;
   gchar* basename = NULL;
   GError* tmp_err = NULL;
@@ -181,47 +183,450 @@ lib_include (lua_State* L)
   int result = 0;
 
   name = luaL_checkstring (L, 1);
+  chunkname = luaL_optstring (L, 2, NULL);
+  mode = luaL_optstring (L, 3, NULL);
+  if (!lua_isnoneornil (L, 4))
+    luaL_checktype (L, 4, LUA_TTABLE);
+
   file = g_file_new_for_commandline_arg (name);
+
   stream = (GInputStream*)
   g_file_read (file, NULL, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
-  { _g_object_unref0 (stream);
-    _g_object_unref0 (file);
-    _limr_throwgerror (L, tmp_err); }
-
-  basename = g_file_get_basename (file);
-  if (basename == NULL)
-    basename = g_strdup (name);
-  _g_object_unref0 (file);
-  g_object_set_qdata_full
-  (G_OBJECT (stream),
-   _limr_stream_reader_chunkname_quark (),
-   basename,
-   (GDestroyNotify)
-   g_free);
+    {
+      _g_object_unref0 (stream);
+      _g_object_unref0 (file);
+      _limr_throwgerror (L, tmp_err);
+    }
+  else
+    {
+      basename = g_file_get_basename (file);
+      _g_object_unref0 (file);
+    }
 
   result =
-  _limr_loadx (L, _stream_reader, stream, basename, NULL);
-  g_object_unref (stream);
+  _limr_loadx (L, _stream_reader, stream, basename, mode);
+  _g_object_unref0 (stream);
+  _g_free0 (basename);
 
   switch (result)
   {
   case LUA_ERRSYNTAX:
-    lua_error (L);
-    break;
+    lua_pushboolean (L, FALSE);
+    lua_insert (L, -2);
+#if DEBUG == 1
+    g_assert (lua_gettop (L) == (top + 2));
+#endif // DEBUG
+    return 2;
   case LUA_ERRMEM:
-    luaL_error (L, "Out of memory");
-    break;
+    lua_pushboolean (L, FALSE);
+    lua_pushstring (L, "Out of memory");
+#if DEBUG == 1
+    g_assert (lua_gettop (L) == (top + 2));
+#endif // DEBUG
+    return 2;
   default:
     g_assert (result == LUA_OK);
-    break;
-  }
-
+    if (!lua_isnoneornil (L, 4))
+    { lua_pushvalue (L, 4);
+      lua_setfenv (L, -2); }
 #if DEBUG == 1
-  g_assert (lua_gettop (L) == (top + 1));
+    g_assert (lua_gettop (L) == (top + 1));
 #endif // DEBUG
-  lua_call (L, 0, LUA_MULTRET);
+    return 1;
+  }
+#if DEBUG == 1
+  g_assert (lua_gettop (L) == top);
+#endif // DEBUG
+return 0;
+}
+
+static int
+lib_checkarg (lua_State* L)
+{
+  int i, argn = 0;
+  const char* got = NULL;
+  const char* type = NULL;
+  int top = lua_gettop (L);
+  int result = FALSE;
+
+  argn = luaL_checkinteger (L, 1);
+  got = luaL_typename (L, 2);
+
+  luaL_Buffer b;
+  luaL_buffinit(L, &b);
+  luaL_addstring (&b, "expected");
+
+  for (i = 3; i < (top + 1); i++)
+    {
+      type = luaL_checkstring (L, i);
+      if (!g_strcmp0 (type, got))
+        {
+          result = TRUE;
+          break;
+        }
+      else
+        {
+          if (i == 3)
+            {
+              lua_pushfstring (L, " %s", type);
+              luaL_addvalue (&b);
+            }
+          else
+            {
+              lua_pushfstring (L, " o %s", type);
+              luaL_addvalue (&b);
+            }
+        }
+    }
+
+
+  if (result == TRUE)
+    {
+      luaL_pushresult (&b);
+      lua_pop (L, 1);
+    }
+  else
+    {
+      lua_pushfstring (L, ", got %s", got);
+      luaL_addvalue (&b);
+      luaL_pushresult (&b);
+      type = lua_tostring (L, -1);
+      luaL_argerror (L, argn, type);
+    }
+#if DEBUG == 1
+  g_assert (lua_gettop (L) == top);
+#endif // DEBUG
+return 0;
+}
+
+static int
+_include (lua_State* L)
+{
+  luaL_checktype (L, 1, LUA_TSTRING);
+  luaL_checktype (L, 2, LUA_TFUNCTION);
+
+  lua_pushvalue (L, 2);
+  lua_pushvalue (L, 1);
+  lua_pushvalue (L, 3);
+  lua_call (L, 2, 2);
+
+  if (lua_isfalse (L, -2))
+    {
+      lua_error (L);
+      g_assert_not_reached();
+    }
+  else
+    {
+      if (G_UNLIKELY (lua_isfunction (L, -2) == FALSE))
+        {
+          luaL_error (L, "searcher function should return a function");
+          g_assert_not_reached ();
+        }
+
+      lua_pop (L, 1);
+
+      lua_pushvalue (L, 1);
+      lua_pushvalue (L, 3);
+
+      int result =
+      lua_pcall (L, 2, 1, 0);
+      switch (result)
+      {
+      case LUA_ERRRUN:
+        g_assert (lua_isstring (L, -1));
+        lua_error (L);
+        g_assert_not_reached ();
+        break;
+      case LUA_ERRERR:
+        luaL_error (L, "recursive error");
+        g_assert_not_reached ();
+        break;
+      case LUA_ERRMEM:
+        luaL_error (L, "thread out of memory");
+        g_assert_not_reached ();
+        break;
+      default:
+        g_assert (result == LUA_OK);
+        lua_pushvalue (L, 3);
+        break;
+      }
+    }
+return 1;
+}
+
+static int
+lib_include (lua_State* L)
+{
+  const gchar* modname = NULL;
+  int i, length = 0;
+  int messages = 0;
+
+  modname = luaL_checkstring (L, 1);
+
+  lua_createtable (L, 0, 0);
+  lua_insert (L, 2);
+
+  lua_pushnumber (L, ++messages);
+  lua_pushfstring (L, "module '%s' not found:", modname);
+  lua_settable (L, 2);
+
+  lua_pushliteral (L, MACROS_SEARCHERS);
+  lua_gettable (L, LUA_REGISTRYINDEX);
+  length = lua_objlen (L, -1);
+
+  lua_pushcfunction (L, _include);
+  lua_pushvalue (L, 1);
+
+  for (i = 0; i < length; i++)
+    {
+      lua_pushnumber(L, i + 1);
+      lua_gettable (L, -4);
+      lua_pushvalue (L, 1);
+      lua_call (L, 1, 2);
+
+      if (lua_isfalse (L, -2))
+        {
+          lua_pushnumber (L, ++messages);
+          lua_pushvalue (L, -2);
+          lua_settable (L, 2);
+          lua_pop (L, 2);
+        }
+      else
+        {
+          if (G_UNLIKELY (lua_isfunction (L, -2) == FALSE))
+          { luaL_error (L, "searchers function should return a function");
+            g_assert_not_reached (); }
+          lua_call (L, 3, 2);
+          return 2;
+        }
+    }
+
+  lua_pop (L, 2);
+
+  luaL_Buffer b;
+  luaL_buffinit (L, &b);
+  for (i = 0; i < messages; i++)
+    {
+      lua_pushnumber (L, i + 1);
+      lua_gettable (L, 2);
+      luaL_addvalue (&b);
+    }
+
+  luaL_pushresult (&b);
+  lua_error (L);
+  g_assert_not_reached ();
+return 0;
+}
+
+/*
+ * API
+ * internal
+ *
+ */
+
+static int
+_default_searcher1 (lua_State* L)
+{
+  luaL_checkstring (L, 1);
+
+  lua_pushliteral (L, MACROS_PRELOAD);
+  lua_gettable (L, LUA_REGISTRYINDEX);
+  lua_pushvalue (L, 1);
+  lua_gettable (L, -2);
+
+  if (lua_isnil (L, -1) == FALSE)
+    {
+      lua_pushliteral (L, ":preload:");
+      return 2;
+    }
+return 0;
+}
+
+static const gchar*
+pushnexttemplate (lua_State* L, const char* path)
+{
+  const char* l;
+  while (*path == *LUA_PATHSEP)
+    path++;
+  if (*path == '\0')
+    return NULL;
+  l = strchr (path, *LUA_PATHSEP);
+  if (l == NULL)
+    l = path + strlen (path);
+  lua_pushlstring (L, path, (size_t)(l - path));
+return l;
+}
+
+static int
+_searchpath (lua_State* L)
+{
+  const gchar *modname = NULL;
+  const gchar *template = NULL;
+  const gchar *name = NULL;
+  const gchar *sep, *rep;
+
+  modname = luaL_checkstring (L, lua_upvalueindex (1));
+  template = luaL_checkstring (L, lua_upvalueindex (2));
+  sep = luaL_checkstring (L, lua_upvalueindex (3));
+  rep = luaL_checkstring (L, lua_upvalueindex (4));
+
+  template = pushnexttemplate (L, template);
+  if (template == NULL)
+    lua_pushnil (L);
+  else
+  {
+    name = luaL_gsub (L, lua_tostring (L, -1), LUA_PATH_MARK, modname);
+    lua_remove (L, -2);
+    lua_pushstring (L, template);
+    lua_replace (L, lua_upvalueindex (2));
+  }
+return 1;
+}
+
+static int
+_search_closure (lua_State* L)
+{
+  int top = lua_gettop (L);
+  lua_pushcfunction (L, lib_loadfile);
+  lua_pushvalue (L, lua_upvalueindex (1));
+  lua_pushnil (L);
+  lua_pushliteral (L, "t");
+  lua_pushliteral (L, LIBRARY);
+  lua_gettable (L, LUA_REGISTRYINDEX);
+  lua_pushliteral (L, "environ");
+  lua_gettable (L, -2);
+  lua_remove (L, -2);
+  lua_call (L, 4, LUA_MULTRET);
 return lua_gettop (L) - top;
+}
+
+static int
+_default_searcher2 (lua_State* L)
+{
+  luaL_checkstring (L, 1);
+  GFile* file = NULL;
+  GFileInfo* info = NULL;
+  GFileType type = 0;
+  GError* tmp_err = NULL;
+  const gchar* uri = NULL;
+  gchar* dynuri = NULL;
+  int i, messages = 0;
+
+  lua_createtable (L, 0, 0);
+  lua_insert (L, 2);
+
+  lua_pushvalue (L, 1);
+
+  lua_pushliteral (L, MACROS);
+  lua_gettable (L, LUA_REGISTRYINDEX);
+  lua_pushliteral (L, "path");
+  lua_gettable (L, -2);
+  lua_remove (L, -2);
+
+  if (lua_isstring (L, -1) == FALSE)
+    luaL_error (L, "invalid macros.path value");
+
+  lua_pushliteral (L, ".");
+  lua_pushliteral (L, LUA_DIRSEP);
+  lua_pushcclosure (L, _searchpath, 4);
+  lua_insert (L, 3);
+
+  do
+  {
+    lua_pushvalue (L, 3);
+    lua_call (L, 0, 1);
+    if (lua_isnil (L, -1))
+      {
+        lua_pop (L, 1);
+        break;
+      }
+    else
+      {
+        if (lua_isstring (L, -1) == FALSE)
+          luaL_error (L, "wtf?");
+
+        uri = lua_tostring (L, -1);
+        file = g_file_new_for_commandline_arg (uri);
+        if (G_UNLIKELY (file == NULL))
+          {
+            lua_pushnumber (L, ++messages);
+            lua_pushfstring (L, "\r\n\tno file %s", uri);
+            lua_settable (L, 2);
+          }
+        else
+          {
+            info =
+            g_file_query_info (file, G_FILE_ATTRIBUTE_STANDARD_TYPE, 0, NULL, &tmp_err);
+            if (G_UNLIKELY (tmp_err != NULL))
+              {
+                _g_object_unref0 (info);
+
+                if (g_error_matches (tmp_err, G_IO_ERROR, G_IO_ERROR_NOT_FOUND))
+                  {
+                    g_clear_error (&tmp_err);
+                    lua_pushnumber (L, ++messages);
+                    lua_pushfstring (L, "\r\n\tno file %s", g_file_peek_path (file));
+                    lua_settable (L, 2);
+                  }
+                else
+                  {
+                    _g_object_unref0 (file);
+                    _limr_throwgerror (L, tmp_err);
+                  }
+              }
+            else
+              {
+                type = g_file_info_get_file_type (info);
+                if (type != G_FILE_TYPE_REGULAR)
+                  {
+                    lua_pushnumber (L, ++messages);
+                    lua_pushfstring (L, "\r\n\tinvalid file %s", g_file_peek_path (file));
+                    lua_settable (L, 2);
+                  }
+                else
+                  {
+                    dynuri = g_file_get_uri (file);
+                    lua_pushstring (L, dynuri);
+                    lua_pushcclosure (L, _search_closure, 1);
+                    _g_object_unref0 (info);
+                    _g_object_unref0 (file);
+                    _g_free0 (dynuri);
+                    return 1;
+                  }
+              }
+            _g_object_unref0 (info);
+          }
+        _g_object_unref0 (file);
+      }
+    lua_pop (L, 1);
+  }
+  while (TRUE);
+
+  luaL_Buffer b;
+  luaL_buffinit (L, &b);
+  for (i = 0; i < messages; i++)
+    {
+      lua_pushnumber (L, (i + 1));
+      lua_gettable (L, 2);
+      luaL_addvalue (&b);
+    }
+
+  lua_pushnil (L);
+  luaL_pushresult (&b);
+return 2;
+}
+
+gboolean
+(lua_istrue) (lua_State* L, int idx)
+{
+  if (lua_isboolean (L, idx))
+    return lua_toboolean (L, idx);
+  if (lua_isnumber (L, idx))
+    return lua_tonumber (L, idx) != 0;
+  if (lua_isnoneornil (L, idx))
+    return FALSE;
+return TRUE;
 }
 
 /*
@@ -232,14 +637,64 @@ return lua_gettop (L) - top;
 static luaL_Reg
 functions[] =
 {
-  {"load", lib_load},
-  {"include", lib_include},
+  { "load", lib_load },
+  { "loadfile", lib_loadfile },
+  { "include", lib_include },
+  { NULL, NULL },
 };
 
 /*
  * Library entry point
  *
  */
+
+static void
+create_macros (lua_State* L)
+{
+  lua_pushliteral (L, "macros");
+  lua_createtable (L, 0, 3);
+  {
+    lua_pushliteral (L, MACROS_PRELOAD);
+    lua_createtable (L, 0, 0);
+    lua_pushliteral (L, MACROS_PRELOAD);
+    lua_pushvalue (L, -2);
+    lua_settable (L, LUA_REGISTRYINDEX);
+    lua_settable (L, -3);
+
+    lua_pushliteral (L, "searchers");
+    lua_createtable (L, 2, 0);
+    {
+      lua_pushnumber (L, 1);
+      lua_pushcfunction (L, _default_searcher1);
+      lua_settable (L, -3);
+      lua_pushnumber (L, 2);
+      lua_pushcfunction (L, _default_searcher2);
+      lua_settable (L, -3);
+    }
+
+    lua_pushliteral (L, MACROS_SEARCHERS);
+    lua_pushvalue (L, -2);
+    lua_settable (L, LUA_REGISTRYINDEX);
+    lua_settable (L, -3);
+
+    lua_pushliteral (L, "path");
+    lua_pushliteral (L, LUA_PATH_DEFAULT);
+    lua_settable (L, -3);
+  }
+
+  lua_pushliteral (L, MACROS);
+  lua_pushvalue (L, -2);
+  lua_settable (L, LUA_REGISTRYINDEX);
+  lua_settable (L, -3);
+}
+
+static void
+patch_global (lua_State* L)
+{
+  lua_pushliteral (L, "checkArg");
+  lua_pushcfunction (L, lib_checkarg);
+  lua_settable (L, LUA_GLOBALSINDEX);
+}
 
 static void
 patch_library (lua_State* L)
@@ -296,14 +751,25 @@ G_MODULE_EXPORT
 int
 luaopen_liblimr (lua_State* L)
 {
+#if DEBUG == 1
+  int top = lua_gettop (L);
+#endif // DEBUG
   _limr_stream_init (L);
+  patch_global (L);
 #if LUA_VERSION_NUM >= 502
   luaL_newlib (L, functions);
 #else // LUA_VERSION_NUM < 502
   lua_newtable (L);
   luaL_register (L, NULL, functions);
 #endif // LUA_VERSION_NUM
-  patch_library (L);
+  lua_pushliteral (L, LIBRARY);
+  lua_pushvalue (L, -2);
+  lua_settable (L, LUA_REGISTRYINDEX);
+  create_macros (L);
   set_info (L);
+  patch_library (L);
+#if DEBUG == 1
+  g_assert (lua_gettop (L) == (top + 1));
+#endif // DEBUG
 return 1;
 }
