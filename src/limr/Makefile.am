@@ -64,6 +64,7 @@ noinst_LTLIBRARIES=liblimr.la
 
 liblimr_la_SOURCES=\
   liblimr.c \
+  limr_cpatch.c \
   limr_host.vala \
   limr_parser.vala \
   limr_patch.c \

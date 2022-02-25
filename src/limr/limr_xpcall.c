@@ -18,7 +18,7 @@
 #include <config.h>
 #include <limr_xpcall.h>
 
-G_DEFINE_QUARK
+G_GNUC_INTERNAL G_DEFINE_QUARK
 (limr-xpcall-error-quark,
  limr_xpcall_error);
 

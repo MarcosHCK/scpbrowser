@@ -16,17 +16,15 @@
  *
  */
 #include <config.h>
-#include <gio/gio.h>
-#include <gmodule.h>
 #include <limr_patch.h>
 #include <limr_stream.h>
 #include <limr_xpcall.h>
 #include <private.h>
 
-G_DEFINE_QUARK
+G_GNUC_INTERNAL G_DEFINE_QUARK
 (limr-stream-reader-buffer-quark,
  _limr_stream_reader_buffer);
-G_DEFINE_QUARK
+G_GNUC_INTERNAL G_DEFINE_QUARK
 (limr-stream-reader-chunkname-quark,
  _limr_stream_reader_chunkname);
 
@@ -523,35 +521,6 @@ _search_closure (lua_State* L)
 return lua_gettop (L) - top;
 }
 
-G_DEFINE_QUARK
-(g-file-peek-uri-cache,
- g_file_peek_uri);
-
-const gchar*
-g_file_peek_uri (GFile* file)
-{
-  g_return_if_fail (G_IS_FILE (file));
-  const gchar* cached = NULL;
-        gchar* uri = NULL;
-
-  cached =
-  g_object_get_qdata
-  (G_OBJECT (file),
-   g_file_peek_uri_quark ());
-  if (G_UNLIKELY (cached == NULL))
-  {
-    uri = g_file_get_uri (file);
-    g_object_set_qdata_full
-    (G_OBJECT (file),
-     g_file_peek_uri_quark (),
-     uri,
-     (GDestroyNotify)
-     g_free);
-    cached = uri;
-  }
-return cached;
-}
-
 static int
 _default_searcher2 (lua_State* L)
 {
@@ -663,18 +632,6 @@ _default_searcher2 (lua_State* L)
   lua_pushnil (L);
   luaL_pushresult (&b);
 return 2;
-}
-
-gboolean
-(lua_istrue) (lua_State* L, int idx)
-{
-  if (lua_isboolean (L, idx))
-    return lua_toboolean (L, idx);
-  if (lua_isnumber (L, idx))
-    return lua_tonumber (L, idx) != 0;
-  if (lua_isnoneornil (L, idx))
-    return FALSE;
-return TRUE;
 }
 
 /*

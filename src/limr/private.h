@@ -17,6 +17,7 @@
  */
 #ifndef __LIBLIMR_PRIVATE__
 #define __LIBLIMR_PRIVATE__ 1
+#include <gio/gio.h>
 #include <gmodule.h>
 
 #if __cplusplus
@@ -30,6 +31,9 @@ extern "C" {
 G_GNUC_INTERNAL
 gboolean
 lua_istrue (lua_State* L, int idx);
+G_GNUC_INTERNAL
+const gchar*
+g_file_peek_uri (GFile* file);
 
 #define LIBRARY           "__LIMR_LIBRARY"
 #define MACROS            "__LIMR_MACROS"
