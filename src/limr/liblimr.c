@@ -444,7 +444,7 @@ return 0;
 }
 
 static const gchar*
-pushnexttemplate (lua_State* L, const char* path)
+pushnexttemplate (lua_State* L, const gchar* path)
 {
   const char* l;
   while (*path == *LUA_PATHSEP)
@@ -459,7 +459,7 @@ return l;
 }
 
 static int
-_searchpath (lua_State* L)
+_searchpath_iter (lua_State* L)
 {
   const gchar *modname = NULL;
   const gchar *template = NULL;
@@ -471,17 +471,39 @@ _searchpath (lua_State* L)
   sep = luaL_checkstring (L, lua_upvalueindex (3));
   rep = luaL_checkstring (L, lua_upvalueindex (4));
 
-  template = pushnexttemplate (L, template);
+  template =
+  pushnexttemplate (L, template);
   if (template == NULL)
-    lua_pushnil (L);
+    {
+      lua_pushnil (L);
+    }
   else
-  {
-    name = luaL_gsub (L, lua_tostring (L, -1), LUA_PATH_MARK, modname);
-    lua_remove (L, -2);
-    lua_pushstring (L, template);
-    lua_replace (L, lua_upvalueindex (2));
-  }
+    {
+      name = luaL_gsub (L, lua_tostring (L, -1), LUA_PATH_MARK, modname);
+      lua_remove (L, -2);
+      lua_pushstring (L, template);
+      lua_replace (L, lua_upvalueindex (2));
+    }
 return 1;
+}
+
+static void
+_searchpath (lua_State* L, const gchar* name, const gchar* path)
+{
+  const gchar *sep = ".";
+  const gchar *dirsep = LUA_DIRSEP;
+#if DEBUG == 1
+  int top = lua_gettop (L);
+#endif // DEBUG
+
+  luaL_gsub (L, name, sep, dirsep);
+  lua_pushstring (L, path);
+  lua_pushstring (L, sep);
+  lua_pushstring (L, dirsep);
+  lua_pushcclosure (L, _searchpath_iter, 4);
+#if DEBUG == 1
+  g_assert (lua_gettop (L) == (top + 1));
+#endif // DEBUG
 }
 
 static int
@@ -501,36 +523,62 @@ _search_closure (lua_State* L)
 return lua_gettop (L) - top;
 }
 
+G_DEFINE_QUARK
+(g-file-peek-uri-cache,
+ g_file_peek_uri);
+
+const gchar*
+g_file_peek_uri (GFile* file)
+{
+  g_return_if_fail (G_IS_FILE (file));
+  const gchar* cached = NULL;
+        gchar* uri = NULL;
+
+  cached =
+  g_object_get_qdata
+  (G_OBJECT (file),
+   g_file_peek_uri_quark ());
+  if (G_UNLIKELY (cached == NULL))
+  {
+    uri = g_file_get_uri (file);
+    g_object_set_qdata_full
+    (G_OBJECT (file),
+     g_file_peek_uri_quark (),
+     uri,
+     (GDestroyNotify)
+     g_free);
+    cached = uri;
+  }
+return cached;
+}
+
 static int
 _default_searcher2 (lua_State* L)
 {
-  luaL_checkstring (L, 1);
   GFile* file = NULL;
   GFileInfo* info = NULL;
   GFileType type = 0;
   GError* tmp_err = NULL;
+  const gchar* name = NULL;
   const gchar* uri = NULL;
   gchar* dynuri = NULL;
   int i, messages = 0;
 
+  name = luaL_checkstring (L, 1);
   lua_createtable (L, 0, 0);
   lua_insert (L, 2);
-
-  lua_pushvalue (L, 1);
 
   lua_pushliteral (L, MACROS);
   lua_gettable (L, LUA_REGISTRYINDEX);
   lua_pushliteral (L, "path");
   lua_gettable (L, -2);
-  lua_remove (L, -2);
 
   if (lua_isstring (L, -1) == FALSE)
-    luaL_error (L, "invalid macros.path value");
+    luaL_error(L, "macros.path must be a string");
 
-  lua_pushliteral (L, ".");
-  lua_pushliteral (L, LUA_DIRSEP);
-  lua_pushcclosure (L, _searchpath, 4);
+  _searchpath (L, name, lua_tostring (L, -1));
   lua_insert (L, 3);
+  lua_pop (L, 2);
 
   do
   {
@@ -566,7 +614,7 @@ _default_searcher2 (lua_State* L)
                   {
                     g_clear_error (&tmp_err);
                     lua_pushnumber (L, ++messages);
-                    lua_pushfstring (L, "\r\n\tno file %s", g_file_peek_path (file));
+                    lua_pushfstring (L, "\r\n\tno file %s", g_file_peek_uri (file));
                     lua_settable (L, 2);
                   }
                 else
@@ -581,7 +629,7 @@ _default_searcher2 (lua_State* L)
                 if (type != G_FILE_TYPE_REGULAR)
                   {
                     lua_pushnumber (L, ++messages);
-                    lua_pushfstring (L, "\r\n\tinvalid file %s", g_file_peek_path (file));
+                    lua_pushfstring (L, "\r\n\tinvalid file %s", g_file_peek_uri (file));
                     lua_settable (L, 2);
                   }
                 else

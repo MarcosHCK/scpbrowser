@@ -45,6 +45,8 @@ namespace Limr
   [CCode (cheader_filename = "private.h")]
   public class Library : GLib.Object
   {
+    [CCode (cname = "LIBRARY")]
+    public const string SELF;
     [CCode (cname = "MACROS")]
     public const string MACROS;
     [CCode (cname = "MACROS_SEARCHERS")]

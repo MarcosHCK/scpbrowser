@@ -52,6 +52,14 @@ Author: MarcosHCK
 
     <!--
      *
+     * Lua scripts
+     *
+    -->
+
+      <file>lua/patch.lua</file>
+
+    <!--
+     *
      * Miscellaneous resources
      *
     -->

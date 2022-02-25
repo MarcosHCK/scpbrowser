@@ -44,11 +44,30 @@ _scp_browser_compile_jhtml (ScpBrowser* self, GBytes* input_, const gchar* path,
     host =
     limr_host_new (cancellable, &tmp_err);
     if (G_UNLIKELY (tmp_err != NULL))
-    {
-      g_propagate_error (error, tmp_err);
-      g_clear_object (&host);
-      return NULL;
-    }
+      {
+        g_propagate_error (error, tmp_err);
+        g_clear_object (&host);
+        return NULL;
+      }
+
+    bytes =
+    g_resources_lookup_data (GRESNAME "/lua/patch.lua", 0, &tmp_err);
+    if (G_UNLIKELY (tmp_err != NULL))
+      {
+        g_propagate_error (error, tmp_err);
+        g_clear_object (&host);
+        return NULL;
+      }
+
+    success =
+    limr_host_inject (host, bytes, cancellable, &tmp_err);
+    if (G_UNLIKELY (tmp_err != NULL))
+      {
+        g_propagate_error (error, tmp_err);
+        g_clear_object (&host);
+        return NULL;
+      }
+    _g_bytes_unref0 (bytes);
 
     g_object_set_qdata_full
     (G_OBJECT (self),

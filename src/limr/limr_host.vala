@@ -137,9 +137,14 @@ namespace Limr
       LuaPatch.loadbufferx (L, (char[]) code.get_data (), "=inject", "bt");
       if (L.is_function (-1))
       {
-        try {
-          Xpcall.xpcall (L, 0, 0);
-        } catch (GLib.Error e) {
+        try
+        {
+          L.push_literal (Library.SELF);
+          L.get_table (Lua.PseudoIndex.REGISTRY);
+          Xpcall.xpcall (L, 1, 0);
+        }
+        catch (GLib.Error e)
+        {
 #if DEBUG == 1
           assert (L.get_top () == top);
 #endif // DEBUG
