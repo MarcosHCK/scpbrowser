@@ -60,6 +60,15 @@ Author: MarcosHCK
 
     <!--
      *
+     * Lua+HTML scripts
+     *
+    -->
+
+      <file>lua/body.lua</file>
+      <file>lua/head.lua</file>
+
+    <!--
+     *
      * Miscellaneous resources
      *
     -->

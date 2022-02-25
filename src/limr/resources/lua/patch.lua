@@ -20,15 +20,24 @@ local limr = ...
 
 --- Patch limr
 do
-  local environ;
+  local environ
+  local env_mt
 
   assert (type (limr) == 'table')
-  local function proxify(table_)
-    return setmetatable ({}, {
-      __metatable = "protected",
-      __newindex = function () end,
-      __index = table_,
-    })
+  local function deepcopy (table_)
+    local result = {}
+    local function copy (src, dst)
+      for key, value in pairs (src) do
+        if (type == 'table') then
+          dst[value] = {}
+          copy (value, dst[value])
+        else
+          dst[key] = value
+        end
+      end
+    end
+    copy (table_, result)
+  return result
   end
 
   environ =
@@ -53,6 +62,7 @@ do
     package = package,
     pairs = pairs,
     pcall = pcall,
+    print = print,
     rawequal = rawequal,
     rawget = rawget,
     rawlen = rawlen,
@@ -72,8 +82,10 @@ do
   {
     __index = function (_, key)
       if (key == 'environ') then
-        return proxify (environ)
+        local env = deepcopy (environ)
+        env._G = env
+        return env
       end
-    end
+    end,
   })
 end

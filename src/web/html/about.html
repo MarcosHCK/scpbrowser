@@ -23,29 +23,14 @@ Author: MarcosHCK
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <title>SCP Foundation - About</title>
-    <meta charset="UTF-8" />
-    <meta http-equiv="content-language" content="en" />
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="text/javascript" src="resources:///js/jquery.js"></script>
-    <script type="text/javascript" src="resources:///js/builtin.js"></script>
     <link rel="stylesheet" href="scss:///css/about.scss" type="text/css" charset="utf-8" media="all" />
-    <link rel="stylesheet" href="scss:///css/builtin.scss" type="text/css" charset="utf-8" media="all" />
+    <?lua include ('lua.head') ?>
   </head>
   <body>
+    <?lua include ('lua.body') ?>
+    <?lua body.begin () ?>
 
-    <div class="scp-container">
-      <main>
-
-        <div class="scp-navigation-headerbar">
-          <img class="scp-logo" src="resources:///res/logo_symbolic.svg" style="height: 70px;"/>
-          <div style="margin: 5px;">
-            <a class="scp-black-link" href="scpbrowser:///home">
-              <h1 class="stylized-script">SCP Foundation</h1>
-            </a>
-            <h2>Sercure, Contain, Protect</h2>
-          </div>
-        </div>
+      <?lua body.headerbar () ?>
 
         <div class="scp-content-wrapper">
           <div class="scp-purpose">
@@ -76,8 +61,7 @@ Author: MarcosHCK
           </div>
         </div>
 
-      </main>
-    </div>
+    <?lua body.finish () ?>
 
     <div class="scp-copying">
       <a href="resources:///res/copying">

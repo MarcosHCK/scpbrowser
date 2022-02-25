@@ -299,6 +299,36 @@ return 0;
 }
 
 static int
+_module (lua_State* L)
+{
+  const gchar* name;
+  int idx;
+
+  name = luaL_checkstring (L, 1);
+  idx = lua_upvalueindex (1);
+
+  luaL_checktype (L, idx, LUA_TTABLE);
+  lua_pushvalue (L, 1);
+  lua_gettable (L, idx);
+
+  if (lua_isnil (L, -1))
+    {
+      lua_pop (L, 1);
+    }
+  else
+    {
+      lua_pushnil (L);
+      return 1;
+    }
+
+  lua_createtable (L, 0, 0);
+  lua_pushvalue (L, 1);
+  lua_pushvalue (L, -2);
+  lua_settable (L, idx);
+return 1;
+}
+
+static int
 _include (lua_State* L)
 {
   luaL_checktype (L, 1, LUA_TSTRING);
@@ -323,6 +353,31 @@ _include (lua_State* L)
         }
 
       lua_pop (L, 1);
+
+      {
+        /* Settup module entry */
+        lua_getfenv (L, -1);
+        lua_pushliteral (L, "module");
+
+        lua_Debug ar;
+        if (lua_getstack (L, 3, &ar) == 0
+          || lua_getinfo (L, "f", &ar) == 0
+          || lua_isfunction (L, -1) == 0)
+        {
+          lua_pop (L, 2);
+          luaL_error (L, "Called from something which is not a function");
+          g_assert_not_reached ();
+        }
+        else
+        {
+          lua_getfenv (L, -1);
+          lua_remove (L, -2);
+        }
+
+        lua_pushcclosure (L, _module, 1);
+        lua_settable (L, -3);
+        lua_pop (L, 1);
+      }
 
       lua_pushvalue (L, 1);
       lua_pushvalue (L, 3);
@@ -508,15 +563,21 @@ static int
 _search_closure (lua_State* L)
 {
   int top = lua_gettop (L);
+  /* func */
   lua_pushcfunction (L, lib_loadfile);
+  /* arg 1 */
   lua_pushvalue (L, lua_upvalueindex (1));
-  lua_pushnil (L);
+  /* arg 2 */
+  lua_pushvalue (L, lua_upvalueindex (2));
+  /* arg 3 */
   lua_pushliteral (L, "t");
+  /* arg 4 */
   lua_pushliteral (L, LIBRARY);
   lua_gettable (L, LUA_REGISTRYINDEX);
   lua_pushliteral (L, "environ");
   lua_gettable (L, -2);
   lua_remove (L, -2);
+  /* call */
   lua_call (L, 4, LUA_MULTRET);
 return lua_gettop (L) - top;
 }
@@ -530,7 +591,8 @@ _default_searcher2 (lua_State* L)
   GError* tmp_err = NULL;
   const gchar* name = NULL;
   const gchar* uri = NULL;
-  gchar* dynuri = NULL;
+  const gchar* dynuri = NULL;
+  gchar* basename = NULL;
   int i, messages = 0;
 
   name = luaL_checkstring (L, 1);
@@ -603,12 +665,16 @@ _default_searcher2 (lua_State* L)
                   }
                 else
                   {
-                    dynuri = g_file_get_uri (file);
+                    dynuri = g_file_peek_uri (file);
                     lua_pushstring (L, dynuri);
-                    lua_pushcclosure (L, _search_closure, 1);
+                    basename = g_file_get_basename (file);
+                    lua_pushstring (L, basename);
+                    _g_free0 (basename);
+
+                    lua_pushcclosure (L, _search_closure, 2);
+
                     _g_object_unref0 (info);
                     _g_object_unref0 (file);
-                    _g_free0 (dynuri);
                     return 1;
                   }
               }

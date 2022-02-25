@@ -1,3 +1,4 @@
+<?lua
 --[[
  * Copyright 2021-2025 MarcosHCK
  * This file is part of scpbrowser.
@@ -16,12 +17,34 @@
  * along with scpbrowser.  If not, see <http://www.gnu.org/licenses/>.
  *
  *]]
-local limr = ...
-local macros = limr.macros
+local body = module ('body')
 
--- Keep sync
-local GRESNAME = '/org/hck/scpbrowser'
-
-do
-  macros.path = table.concat ({ macros.path, 'resource://' .. GRESNAME .. '/?.lua' }, ';')
+function body.begin ()
+?>
+  <div class="scp-container">
+    <main>
+<?lua
 end
+
+function body.finish ()
+?>
+    </main>
+  </div>
+<?lua
+end
+
+function body.headerbar ()
+?>
+  <div class="scp-navigation-headerbar">
+    <img class="scp-logo" src="resources:///res/logo_symbolic.svg" style="height: 70px;"/>
+    <div style="margin: 5px;">
+      <a class="scp-black-link" href="scpbrowser:///home">
+        <h1 class="stylized-script">SCP Foundation</h1>
+      </a>
+      <h2>Sercure, Contain, Protect</h2>
+    </div>
+  </div>
+<?lua
+end
+
+?>
