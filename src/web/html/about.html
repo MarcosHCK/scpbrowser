@@ -31,57 +31,103 @@ Author: MarcosHCK
     <?lua body.begin () ?>
 
       <?lua body.headerbar () ?>
+      <?lua local config = require ('config') ?>
 
         <div class="scp-content-wrapper">
-          <div class="scp-purpose scp-marble-tablet">
-            <p>
-              <h3 style="font-weight: bolder;">Mankind in its present state has been around for a quarter of a million years, yet only the last 4,000 have been of any significance.</h3>
-            </p>
-            <p>
-              <span>So, what did we do for nearly 250,000 years? We huddled in caves and around small fires, fearful of the things that we didn't understand. It was more than explaining why the sun came up, it was the mystery of enormous birds with heads of men and rocks that came to life. So we called them 'gods' and 'demons', begged them to spare us, and prayed for salvation.</span>
-            </p>
-            <p>
-              <span>In time, their numbers dwindled and ours rose. The world began to make more sense when there were fewer things to fear, yet the unexplained can never truly go away, as if the universe demands the absurd and impossible.</span>
-            </p>
-            <p>
-              <span><strong>Mankind must not go back to hiding in fear</strong>. No one else will protect us, and we must stand up for ourselves.</span>
-            </p>
-            <p>
-              <span>While the rest of mankind dwells in the light, we must stand in the darkness to fight it, contain it, and shield it from the eyes of the public, so that others may live in a sane and normal world.</span>
-              <br />
-              <p style="display: flex;">
-                <img class="administrator-sign" src="resources:///res/logo_symbolic.svg" />
-                <span style="display: block;">
-                  <strong>We secure. We contain. We protect.</strong>
-                  <br />
-                  <strong>- The Administrator.</strong>
-                </span>
-              </p>
-            </p>
+          <div class="scp-about scp-marble-tablet">
+
+            <div class="centerable">
+              <h1 class="compact" style="margin-bottom: 0px; font-weight: bolder;">Scp Browser</h1>
+              <h4 class="compact" style="margin-top: 0px;">
+                <?lua io.write (('%s %s'):format (config.PACKAGE_VERSION, config.PACKAGE_RELEASE)) ?>
+              </h4>
+              <h4 class="compact">
+                <span>Scp Foundation database official Browser</span>
+                <br />
+                <span>Browse through SCPNET like never before. Approved for use by all clearance levels from Level 1 to 4</span>
+              </h4>
+              <a href="<?lua io.write (config.PACKAGE_URL) ?>">
+                <h4 class="compact">Vist our website here</h4>
+              </a>
+
+              <?lua
+                local dumpres
+                do
+                  local config = require ('config')
+                  local lgi = require ('lgi')
+                  local GLib = lgi.GLib
+                  local Gio = lgi.Gio
+
+                  dumpres = function (name)
+                    local file = config.resources:get_child (name)
+                    local fstream = file:read ()
+                    local stream = Gio.DataInputStream.new (fstream)
+
+                    io.stdout:write ('<p>')
+
+                    repeat
+                      local line = stream:read_line_utf8 ()
+                      if (line ~= nil) then
+                        if (line == '') then
+                          io.stdout:write ('</p><p>')
+                        else
+                          local info = GLib.markup_escape_text (line, -1)
+                          io.stdout:write (('<span>%s </span>'):format (info))
+                        end
+                      end
+                    until (line == nil)
+
+                    io.stdout:write ('</p>')
+                  end
+                end
+              ?>
+              
+              <div class="scp-expandable">
+                <h4 class="title compact">
+                  <span>Credits</span>
+                </h4>
+                <div class="content">
+                  <?lua dumpres ('res/authors') ?>
+                </div>
+              </div>
+              <div class="scp-expandable">
+                <h4 class="title compact">
+                  <span>Copyright</span>
+                </h4>
+                <div class="content">
+                  <?lua dumpres ('res/copying') ?>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
     <?lua body.finish () ?>
-
-    <div class="scp-copying">
-      <a href="jhtml:///html/copying.html">
-        <p>COPYING</p>
-      </a>
-    </div>
-
     <style>
 
-      h1.stylized-script
-      {
-        font-family: BauhausLTDemi, 'Nanum Gothic', Arial, sans-serif;
-      }
+      <?lua
+        local tags = {}
+        local class = 'compact'
 
-      img.administrator-sign
-      {
-        margin-left: 10%;
-        width: auto;
-        height: 64px;
-      }
+        table.insert (tags, 'p')
+        table.insert (tags, 'span')
+
+        for i = 1, 5 do
+          table.insert (tags, ('h%i'):format (i))
+        end
+
+        for i, tag in ipairs (tags) do
+          if (i > 1) then
+            io.write (', ')
+          end
+          io.write (('%s.%s'):format (tag, class))
+        end
+      ?>
+        {
+          margin-top: 5px;
+          margin-bottom: 5px;
+        }
 
     </style>
   </body>

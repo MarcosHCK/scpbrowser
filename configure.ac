@@ -199,6 +199,7 @@ src/limr/resources/Makefile
 src/limr/Makefile
 src/resources/Makefile
 src/vapi/Makefile
+src/web/lua/patch.lua
 src/web/Makefile
 src/Makefile
 Makefile

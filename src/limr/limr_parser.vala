@@ -206,6 +206,7 @@ namespace Limr
             {
               if(c == '?')
               {
+                flushemit ();
                 state.pending = false;
                 state.inmacro = true;
               }
@@ -228,9 +229,9 @@ namespace Limr
       }
       while (true);
 
+      flushemit ();
       if (state.inmacro)
         flushmacro ();
-      flushemit ();
     return true;
     }
   }

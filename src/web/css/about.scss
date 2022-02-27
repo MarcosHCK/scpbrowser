@@ -53,3 +53,11 @@ div.scp-copying
     }
   }
 }
+
+div.centerable
+{
+  @extend %flexbox;
+  flex-direction: column;
+  justify-self: center;
+  text-align: center;
+}

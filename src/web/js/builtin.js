@@ -15,3 +15,35 @@
  * along with scpbrowser.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+(function ()
+{
+  $(window).on ('load', () =>
+  {
+    var tags = $('div.scp-expandable')
+    var closure
+
+    for (i = 0; i < tags.length; i++)
+      {
+        function mkclosure ()
+          {
+            var tag = $(tags[i])
+            var closure = () =>
+              {
+                var title = tag.children('.title')
+                var content = tag.children('.content')
+                var callback =
+                () => { content.toggleClass('collapsed') }
+
+                title.on('click', callback)
+                callback ()
+              }
+
+          return closure
+          }
+
+        var closure = mkclosure ();
+          closure ()
+      }
+  })
+}) (jQuery)

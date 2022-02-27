@@ -18,13 +18,6 @@
  */
 @import "theme.scss";
 
-%flexbox
-{
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}
-
 body
 {
   @extend %theme-div;
@@ -34,39 +27,64 @@ body
 div.scp-container
 {
   @extend %flexbox;
+  width: 100%;
 
-  div.scp-navigation-headerbar
+  main
   {
-    @extend %flexbox;
-    justify-content: start;
-    position: relative;
-    height: fit-content;
     width: 100%;
 
-    h1
+    div.scp-navigation-headerbar
     {
-      margin: 0px;
+      @extend %flexbox;
+      justify-content: start;
+      position: relative;
+      height: fit-content;
+      width: 100%;
+
+      h1
+      {
+        margin: 0px;
+      }
+
+      h2
+      {
+        margin: 0px;
+      }
+
+      a.scp-black-link
+      {
+        @extend %theme-link;
+      }
+
+      img.scp-logo
+      {
+        margin: 5px;
+      }
     }
 
-    h2
+    div.scp-content-wrapper
     {
-      margin: 0px;
-    }
-
-    a.scp-black-link
-    {
-      @extend %theme-link;
-    }
-
-    img.scp-logo
-    {
-      margin: 5px;
+      @extend %flexbox;
+      padding: 5%;
     }
   }
+}
 
-  div.scp-content-wrapper
+div.scp-expandable
+{
+  .title
   {
-    @extend %flexbox;
-    padding: 5%;
+    display: inherit;
+  }
+
+  .content
+  {
+    transition: display .2s ease-in-out;
+    -webkit-transition: display .2s ease-in-out;
+  }
+
+  .collapsed
+  {
+    display: none;
   }
 }
