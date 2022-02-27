@@ -28,8 +28,7 @@ namespace Limr
       public bool inmacro;
       public bool pending;
       public bool inlr;
-      public uint64 line;
-      public uint64 coln;
+      public uint64 lines;
       public char queue;
       public size_t read;
       public size_t used;
@@ -59,6 +58,7 @@ namespace Limr
 
       unowned Flusher flushemit = null;
       unowned Emitter emitchar = null;
+      unowned Flusher flushmacro_signed = null;
       unowned Flusher flushmacro = null;
       unowned Emitter emitmacro = null;
       unowned Emitter emitmacro_unsigned = null;
@@ -67,22 +67,56 @@ namespace Limr
       {
         var idx = slices.data.length;
         slices.add (table.insert_len (databuf.str, databuf.len));
-        source.append_printf ("do ref_string (%i); end;\r\n", idx);
+        source.append_printf ("do ref_string (%i); end;", idx);
         databuf.truncate (0);
+
+        if (state.lines > 0)
+          {
+            int j;
+            for (j = 0; j < state.lines; j++)
+              {
+                source.append_c ('\r');
+                source.append_c ('\n');
+              }
+            state.lines = 0;
+          }
       });
 
       emitchar = ((c) =>
       {
+        switch ((int) c)
+          {
+          case '\r':
+            state.inlr = true;
+            break;
+          case '\n':
+            state.inlr = false;
+            state.lines++;
+            break;
+          default:
+            if (state.inlr)
+              {
+                state.inlr = false;
+                state.lines++;
+              }
+            break;
+          }
+
         if (databuf.len >= bufferSize)
           flushemit ();
         databuf.append_c ((char) c);
       });
 
+      flushmacro_signed = (() =>
+      {
+        source.append_len (scriptbuf.str, scriptbuf.len);
+        scriptbuf.truncate (0);
+      });
+
       flushmacro = (() =>
       {
         emitmacro = emitmacro_unsigned;
-        source.append_len (scriptbuf.str, scriptbuf.len);
-        scriptbuf.truncate (0);
+        flushmacro_signed ();
       });
 
       emitmacro_unsigned = ((c) =>
@@ -92,9 +126,15 @@ namespace Limr
         {
           if (scriptbuf.str != sign)
           {
-            databuf.append_c ('<');
-            databuf.append_c ('?');
-            databuf.append_len (scriptbuf.str, scriptbuf.len);
+            emitchar ('<');
+            emitchar ('?');
+
+            int j;
+            var buf = scriptbuf.str;
+            for (j = 0; j < scriptbuf.len; j++)
+              {
+                emitchar (buf[j]);
+              }
             scriptbuf.truncate (0);
             state.inmacro = false;
             state.pending = false;
@@ -104,8 +144,8 @@ namespace Limr
             scriptbuf.truncate (0);
             emitmacro = (c) =>
             {
-              if (databuf.len >= bufferSize)
-                flushmacro ();
+              if (scriptbuf.len >= bufferSize)
+                flushmacro_signed ();
               scriptbuf.append_c ((char) c);
             };
           }
@@ -188,8 +228,9 @@ namespace Limr
       }
       while (true);
 
+      if (state.inmacro)
+        flushmacro ();
       flushemit ();
-      flushmacro ();
     return true;
     }
   }
