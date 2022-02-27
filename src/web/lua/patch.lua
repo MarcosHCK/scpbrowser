@@ -23,5 +23,8 @@ local macros = limr.macros
 local GRESNAME = '/org/hck/scpbrowser'
 
 do
+  local resources = (require ('lgi')).Gio.File.new_for_uri ('resource://' .. GRESNAME)
+  limr.resources = resources
+
   macros.path = table.concat ({ macros.path, 'resource://' .. GRESNAME .. '/?.lua' }, ';')
 end

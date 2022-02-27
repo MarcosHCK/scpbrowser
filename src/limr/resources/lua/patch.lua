@@ -67,6 +67,7 @@ do
     rawget = rawget,
     rawlen = rawlen,
     rawset = rawset,
+    require = require,
     select = select,
     setfenv = setfenv,
     setmetatable = setmetatable,
@@ -78,6 +79,8 @@ do
     xpcall = xpcall,
   }
 
+  package.loaded.limr = limr
+
   setmetatable (limr,
   {
     __index = function (_, key)
@@ -88,4 +91,14 @@ do
       end
     end,
   })
+end
+
+-- Detect lgi installation
+do
+  local success, lgi = pcall (require, 'lgi')
+  if (not success) then
+    print ('Missing lgi installation, you may expect some errors')
+  else
+    package.loaded.lgi = lgi
+  end
 end

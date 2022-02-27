@@ -18,6 +18,22 @@
  */
 @import "theme.scss";
 
+div.scp-container
+{
+  div.scp-content-wrapper
+  {
+    div.scp-marble-tablet
+    {
+      width: 70%;
+      border-radius: 5px;
+      background: url(resources:///res/marble.png) repeat;
+      padding: 20px;
+      text-shadow: 1px 1px 1px rgba(0,0,0,.25);
+      color: #333;
+    }
+  }
+}
+
 div.scp-copying
 {
   position: absolute;

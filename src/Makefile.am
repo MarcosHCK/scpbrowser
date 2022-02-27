@@ -80,6 +80,7 @@ scpbrowser_CFLAGS=\
   -DMODULESDIR=\"${modulesdir}\" \
   -DSCHEMASDIR=\"${schemasdir}\" \
   -DPKGLIBDIR=\"${pkglibdir}\" \
+  -DG_LOG_DOMAIN=\"ScpBrowser\" \
   -DGAPPNAME=\"org.hck.${PACKAGE_NAME}\" \
   -DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\" \
   -DGEXTNAME=\"org-hck-${PACKAGE_NAME}\" \

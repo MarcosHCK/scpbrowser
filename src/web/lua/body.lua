@@ -38,7 +38,7 @@ function body.headerbar ()
   <div class="scp-navigation-headerbar">
     <img class="scp-logo" src="resources:///res/logo_symbolic.svg" style="height: 70px;"/>
     <div style="margin: 5px;">
-      <a class="scp-black-link" href="scpbrowser:///home">
+      <a class="scp-black-link" href="scp:///home">
         <h1 class="stylized-script">SCP Foundation</h1>
       </a>
       <h2>Sercure, Contain, Protect</h2>

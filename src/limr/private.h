@@ -20,6 +20,10 @@
 #include <gio/gio.h>
 #include <gmodule.h>
 
+#ifndef __LIBLIMR_INSIDE__
+  #error "Include 'liblimr.h' instead"
+#endif // !__LIBLIMR_INSIDE__
+
 #if __cplusplus
 extern "C" {
 #endif // __cplusplus

@@ -113,7 +113,7 @@ IMPLEMENT_CACHED_ON_REQUEST (jhtml, jhtmls, _scp_browser_compile_jhtml);
 IMPLEMENT_CACHED_ON_REQUEST (scss, scsses, _scp_browser_compile_scss);
 
 static void
-on_uri_scheme_request_scpbrowser (WebKitURISchemeRequest* request, gpointer pself)
+on_uri_scheme_request_scp (WebKitURISchemeRequest* request, gpointer pself)
 {
   ScpBrowser* self = SCP_BROWSER(pself);
   gboolean success = TRUE;
@@ -150,6 +150,7 @@ static void
 on_initialize_web_extensions (WebKitWebContext* context, ScpBrowser* browser)
 {
   GVariantBuilder builder = {0};
+  GVariantBuilder builder2 = {0};
   GVariant* variant = NULL;
 
   /*
@@ -169,7 +170,18 @@ on_initialize_web_extensions (WebKitWebContext* context, ScpBrowser* browser)
    */
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
-  g_variant_builder_add (&builder, "{sv}", "key", g_variant_new_string ("value"));
+  {
+    g_variant_builder_init (&builder2, G_VARIANT_TYPE_STRING_ARRAY);
+    {
+      g_variant_builder_add (&builder2, "s", "resource");
+      g_variant_builder_add (&builder2, "s", "jhtml");
+      g_variant_builder_add (&builder2, "s", "scss");
+      g_variant_builder_add (&builder2, "s", "scp");
+    }
+    variant =
+    g_variant_builder_end (&builder2);
+    g_variant_builder_add (&builder, "{sv}", "schemas", variant);
+  }
 
   /*
    * Send extension data
@@ -187,12 +199,6 @@ scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancella
   gboolean success = TRUE;
   GError* tmp_err = NULL;
   ScpBrowser* self = SCP_BROWSER (pself);
-
-  self->user_content =
-  (WebKitUserContentManager*)
-  g_object_new
-  (WEBKIT_TYPE_USER_CONTENT_MANAGER,
-   NULL);
 
   self->website_data =
   (WebKitWebsiteDataManager*)
@@ -213,44 +219,16 @@ scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancella
    "enable-java", FALSE,
    NULL);
 
-  self->context =
-  (WebKitWebContext*)
-  g_object_new
-  (WEBKIT_TYPE_WEB_CONTEXT,
-   "website-data-manager", self->website_data,
-   NULL);
+  self->user_content = (WebKitUserContentManager*)
+  g_object_new (WEBKIT_TYPE_USER_CONTENT_MANAGER, NULL);
+  self->context = (WebKitWebContext*)
+  g_object_new (WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", self->website_data, NULL);
+  webkit_web_context_set_cache_model (self->context, WEBKIT_CACHE_MODEL_DOCUMENT_BROWSER);
 
-  webkit_web_context_set_cache_model
-  (self->context,
-   WEBKIT_CACHE_MODEL_DOCUMENT_BROWSER);
-
-  webkit_web_context_register_uri_scheme
-  (self->context,
-   "resources",
-   on_uri_scheme_request_resources,
-   self,
-   NULL);
-
-  webkit_web_context_register_uri_scheme
-  (self->context,
-   "jhtml",
-   on_uri_scheme_request_jhtml,
-   self,
-   NULL);
-
-  webkit_web_context_register_uri_scheme
-  (self->context,
-   "scss",
-   on_uri_scheme_request_scss,
-   self,
-   NULL);
-
-  webkit_web_context_register_uri_scheme
-  (self->context,
-   "scpbrowser",
-   on_uri_scheme_request_scpbrowser,
-   self,
-   NULL);
+  webkit_web_context_register_uri_scheme (self->context, "resources", on_uri_scheme_request_resources, self, NULL);
+  webkit_web_context_register_uri_scheme (self->context, "jhtml", on_uri_scheme_request_jhtml, self, NULL);
+  webkit_web_context_register_uri_scheme (self->context, "scss", on_uri_scheme_request_scss, self, NULL);
+  webkit_web_context_register_uri_scheme (self->context, "scp", on_uri_scheme_request_scp, self, NULL);
 
   g_signal_connect
   (self->context,

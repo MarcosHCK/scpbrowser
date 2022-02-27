@@ -60,7 +60,7 @@ EXTRA_DIST+=\
 # Binaries and libraries
 #
 
-noinst_LTLIBRARIES=liblimr.la
+pkglib_LTLIBRARIES=liblimr.la
 
 liblimr_la_SOURCES=\
   liblimr.c \

@@ -68,15 +68,5 @@ div.scp-container
   {
     @extend %flexbox;
     padding: 5%;
-
-    div.scp-purpose
-    {
-      width: 70%;
-      border-radius: 5px;
-      background: url(resources:///res/marble.png) repeat;
-      padding: 20px;
-      text-shadow: 1px 1px 1px rgba(0,0,0,.25);
-      color: #333;
-    }
   }
 }

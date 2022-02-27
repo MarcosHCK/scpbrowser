@@ -29,6 +29,7 @@ Author: MarcosHCK
     -->
 
       <file preprocess="xml-stripblanks">html/about.html</file>
+      <file preprocess="xml-stripblanks">html/copying.html</file>
       <file preprocess="xml-stripblanks">html/home.html</file>
 
     <!--

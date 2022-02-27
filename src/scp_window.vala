@@ -115,7 +115,7 @@ namespace Scp
     {
       uint page_n = notebook1.get_current_page ();
       var page = notebook1.get_nth_page ((int)page_n) as Scp.NotebookPage;
-      page.try_open ("scpbrowser:///home");
+      page.try_open ("scp:///home");
     }
 
     [GtkCallback]
@@ -150,7 +150,7 @@ namespace Scp
     {
       uint page_n = notebook1.get_current_page ();
       var page = notebook1.get_nth_page ((int) page_n) as Scp.NotebookPage;
-      page.try_open ("scpbrowser:///preferences");
+      page.try_open ("scp:///preferences");
     }
 
     [GtkCallback]
@@ -158,7 +158,7 @@ namespace Scp
     {
       uint page_n = notebook1.get_current_page ();
       var page = notebook1.get_nth_page ((int) page_n) as Scp.NotebookPage;
-      page.try_open ("scpbrowser:///about");
+      page.try_open ("scp:///about");
     }
 
     [GtkCallback]
