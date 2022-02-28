@@ -44,6 +44,9 @@ g_file_peek_uri (GFile* file);
 #define MACROS_PRELOAD    "__LIMR_MACROS_PRELOAD"
 #define MACROS_SEARCHERS  "__LIMR_MACROS_SEARCHERS"
 
+#define SKETCH_TABLE      "__LIMR_SKETCH_TABLE"
+#define SKETCH_SLICES     "__LIMR_SKETCH_SLICES"
+
 #define lua_istrue(L,idx) (lua_istrue ((L),(idx)))
 #define lua_isfalse(L,idx) (!lua_istrue ((L),(idx)))
 

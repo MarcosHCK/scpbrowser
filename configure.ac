@@ -102,6 +102,10 @@ AC_CHECK_PROG([GLIB_MKENUMS], [glib-mkenums], [glib-mkenums], [no])
 if test "x$GLIB_MKENUMS" = "xno"; then
   AC_MSG_FAILURE([glib-mkenums not found our your system])
 fi
+AC_CHECK_PROG([SASSC], [sassc], [sassc], [no])
+if test "x$GLIB_MKENUMS" = "xno"; then
+  AC_MSG_FAILURE([sassc not found our your system])
+fi
 
 #
 # Gettext stuff
@@ -162,7 +166,6 @@ PKG_CHECK_MODULES([GLIB], [glib-2.0])
 PKG_CHECK_MODULES([GMODULE], [gmodule-2.0])
 PKG_CHECK_MODULES([GOBJECT], [gobject-2.0])
 PKG_CHECK_MODULES([GTK], [gtk+-3.0])
-PKG_CHECK_MODULES([LIBSASS], [libsass])
 PKG_CHECK_MODULES([LIBSOUP], [libsoup-2.4])
 PKG_CHECK_MODULES([LUA], [luajit lua5.1 lua51])
 PKG_CHECK_MODULES([WEBKIT2], [webkit2gtk-4.0])

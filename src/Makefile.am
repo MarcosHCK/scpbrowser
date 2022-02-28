@@ -72,7 +72,6 @@ scpbrowser_CFLAGS=\
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
   $(GTK_CFLAGS) \
-  $(LIBSASS_CFLAGS) \
   $(LIBSOUP_CFLAGS) \
   $(WEBKIT2_CFLAGS) \
   -DGIRDIR=\"${girdir}\" \
@@ -92,7 +91,6 @@ scpbrowser_LDADD=\
   $(GMODULE_LIBS) \
   $(GOBJECT_LIBS) \
   $(GTK_LIBS) \
-  $(LIBSASS_LIBS) \
   $(LIBSOUP_LIBS) \
   $(WEBKIT2_LIBS) \
   libscpbrowser.la \
@@ -102,7 +100,6 @@ scpbrowser_LDADD=\
 libscpbrowser_la_SOURCES=\
   scp_application.vala \
   scp_browser_jhtml.c \
-  scp_browser_scss.c \
   scp_browser.c \
   scp_message.vala \
   scp_notebook_page.vala \
@@ -116,7 +113,6 @@ libscpbrowser_la_CFLAGS=\
   $(GMODULE_CFLAGS) \
   $(GOBJECT_CFLAGS) \
   $(GTK_CFLAGS) \
-  $(LIBSASS_CFLAGS) \
   $(WEBKIT2_CFLAGS) \
   -Ilimr/ \
   -DABSTOPBUILDDIR=\"${abs_top_builddir}\" \
@@ -137,7 +133,6 @@ libscpbrowser_la_LIBADD=\
   $(GMODULE_LIBS) \
   $(GOBJECT_LIBS) \
   $(GTK_LIBS) \
-  $(LIBSASS_LIBS) \
   $(WEBKIT2_LIBS) \
   limr/liblimr.la \
   resources/libbundle.la \

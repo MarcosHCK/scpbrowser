@@ -18,10 +18,11 @@
  *
  *]]
 local body = module ('body')
+local config = require ('config')
 
 function body.begin ()
 ?>
-  <div class="scp-container">
+  <div class="container">
     <main>
 <?lua
 end
@@ -30,19 +31,28 @@ function body.finish ()
 ?>
     </main>
   </div>
+  <script src="resources:///js/bootstrap.bundle.min.js"></script>
 <?lua
 end
 
 function body.headerbar ()
 ?>
-  <div class="scp-navigation-headerbar">
-    <img class="scp-logo" src="resources:///res/logo_symbolic.svg" style="height: 70px;"/>
-    <div style="margin: 5px;">
-      <a class="scp-black-link" href="scp:///home">
-        <h1 class="stylized-script">SCP Foundation</h1>
+  <div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+      <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none" href="<?lua io.write (config.links.home) ?>">
+        <img class="bi me-2" src="resources:///res/logo_symbolic.svg" style="height: 70px;"/>
+        <span class="fs-4">Scp Foundation</span>
       </a>
-      <h2>Sercure, Contain, Protect</h2>
-    </div>
+
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a href="<?lua io.write (config.links.home) ?>" class="nav-link">Home</a>
+        </li>
+        <li class="nav-item">
+          <a href="<?lua io.write (config.links.about) ?>" class="nav-link">About</a>
+        </li>
+      </ul>
+    </header>
   </div>
 <?lua
 end

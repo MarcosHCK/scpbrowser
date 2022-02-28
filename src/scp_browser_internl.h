@@ -116,6 +116,69 @@
     on_uri_scheme_request_##prefix##_with_fullpath (request, fullpath, pself); \
     _g_free0 (fullpath); \
   }
+#define IMPLEMENT_ON_REQUEST(prefix,generator) \
+  static void \
+  on_uri_scheme_request_##prefix##_with_fullpath (WebKitURISchemeRequest* request, const gchar* fullpath, gpointer pself) \
+  { \
+    ScpBrowser* self = SCP_BROWSER(pself); \
+    GInputStream* stream = NULL; \
+    gboolean success = TRUE; \
+    GError* tmp_err = NULL; \
+    GBytes* bytes = NULL; \
+    gsize length = 0; \
+;\
+    bytes = \
+    g_resources_lookup_data (fullpath, G_RESOURCE_LOOKUP_FLAGS_NONE, &tmp_err); \
+    if (G_UNLIKELY (tmp_err != NULL)) \
+    { \
+      webkit_uri_scheme_request_finish_error (request, tmp_err); \
+      _g_bytes_unref0 (bytes); \
+      _g_error_free0 (tmp_err); \
+    } \
+    else \
+    { \
+      bytes = \
+      (generator) (self, bytes, fullpath, &tmp_err); \
+      if (G_UNLIKELY (tmp_err != NULL)) \
+        { \
+          g_warning \
+          ("(%s: %i): %s: %i: %s", \
+          G_STRFUNC, \
+          __LINE__, \
+          g_quark_to_string (tmp_err->domain), \
+          tmp_err->code, \
+          tmp_err->message); \
+          webkit_uri_scheme_request_finish_error (request, tmp_err); \
+          _g_bytes_unref0 (bytes); \
+          _g_error_free0 (tmp_err); \
+        } \
+      else \
+        { \
+          stream = g_memory_input_stream_new_from_bytes (bytes); \
+          length = g_bytes_get_size (bytes); \
+; \
+          webkit_uri_scheme_request_finish (request, stream, length, "text/html"); \
+          _g_object_unref0 (stream); \
+        } \
+    } \
+  } \
+  static void \
+  on_uri_scheme_request_##prefix (WebKitURISchemeRequest* request, gpointer pself) \
+  { \
+    const gchar* path = NULL; \
+    gchar* fullpath = NULL; \
+;\
+    path = \
+    webkit_uri_scheme_request_get_path (request); \
+;\
+    if (g_str_has_prefix (path, GRESNAME) == FALSE) \
+      fullpath = g_build_filename (GRESNAME, path, NULL); \
+    else \
+      fullpath = g_strdup (path); \
+; \
+    on_uri_scheme_request_##prefix##_with_fullpath (request, fullpath, pself); \
+    _g_free0 (fullpath); \
+  }
 
 #if __cplusplus
 extern "C" {
@@ -124,10 +187,6 @@ extern "C" {
 struct _ScpBrowser
 {
   GObject parent_instance;
-
-  /*<private>*/
-  GHashTable* jhtmls;
-  GHashTable* scsses;
 
   /*<private>*/
   WebKitWebContext* context;
@@ -141,9 +200,6 @@ struct _ScpBrowserClass
   GObjectClass parent_class;
 };
 
-G_GNUC_INTERNAL
-GBytes*
-_scp_browser_compile_scss (ScpBrowser* self, GBytes* input, const gchar* path, GError** error);
 G_GNUC_INTERNAL
 GBytes*
 _scp_browser_compile_jhtml (ScpBrowser* self, GBytes* input, const gchar* path, GError** error);

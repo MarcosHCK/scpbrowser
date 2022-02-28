@@ -20,6 +20,7 @@
 #include <limr_patch.h>
 #include <limr_stream.h>
 #include <limr_xpcall.h>
+#include <private.h>
 #include <stdio.h>
 
 static const int chunkSize = 256;
@@ -112,8 +113,8 @@ static int
 _ref_string (lua_State* L)
 {
   lua_Integer index = luaL_checkinteger (L, 1);
-  const gchar** strings = (const gchar**)
-  (lua_touserdata (L, lua_upvalueindex (2)));
+  const gchar** strings = *(const gchar***)
+  (luaL_checkudata (L, lua_upvalueindex (2), SKETCH_SLICES));
   gsize length = GPOINTER_TO_SIZE
   (lua_touserdata (L, lua_upvalueindex (3)));
   gpointer pstream = NULL;
@@ -198,8 +199,10 @@ _limr_loadx (lua_State* L, lua_Reader reader, void* dt, const gchar* chunkname, 
   if (G_LIKELY (result == LUA_OK))
   {
     g_assert (lua_isfunction (L, -1));
-    lua_pushlightuserdata (L, g_steal_pointer (&table));
-    lua_pushlightuserdata (L, g_ptr_array_steal (slices, &length));
+    *((gpointer*) lua_newuserdata (L, sizeof (gpointer))) = g_steal_pointer (&table);
+    luaL_setmetatable (L, SKETCH_TABLE);
+    *((gpointer *)lua_newuserdata(L, sizeof(gpointer))) = g_ptr_array_steal (slices, &length);
+    luaL_setmetatable (L, SKETCH_SLICES);
     lua_pushlightuserdata (L, GSIZE_TO_POINTER (length));
     lua_pushcclosure (L, _ref_string, 3);
     lua_pushcclosure (L, _sketch, 2);

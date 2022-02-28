@@ -57,6 +57,15 @@ resources.h: web.gresources.xml $(RESOURCES)
 	$(GLIB_COMPILE_RESOURCES) --target=$@ --generate-header $<
 
 #
+# Specific targets
+#
+
+SUFFIXES=.scss .css
+
+.scss.css:
+	$(SASSC) $< $@
+
+#
 # Binaries and libraries
 #
 

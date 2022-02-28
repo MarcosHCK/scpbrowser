@@ -37,9 +37,8 @@ Author: MarcosHCK
      *
     -->
 
-      <file>css/about.scss</file>
-      <file>css/builtin.scss</file>
-      <file>css/theme.scss</file>
+      <file>css/about.css</file>
+      <file>css/builtin.css</file>
 
     <!--
      *
@@ -47,6 +46,8 @@ Author: MarcosHCK
      *
     -->
 
+      <file>js/bootstrap.bundle.min.js</file>
+      <file>js/bootstrap.bundle.min.js.map</file>
       <file>js/builtin.js</file>
       <file>js/jquery.js</file>
 

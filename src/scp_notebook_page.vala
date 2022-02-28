@@ -307,6 +307,7 @@ namespace Scp
 
       webview1 = app.browser.create_view ();
       box1.pack_start (webview1, true, true, 0);
+      label1.visible = false;
 
       webview1.close.connect(on_close);
       webview1.create.connect(on_create);

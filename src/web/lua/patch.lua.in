@@ -46,3 +46,11 @@ do
   config.resources = (require ('lgi')).Gio.File.new_for_uri ('resource://' .. GRESNAME)
   package.loaded.config = config
 end
+
+do
+  config.links =
+  {
+    about = 'scp:///about',
+    home = 'scp:///home',
+  }
+end

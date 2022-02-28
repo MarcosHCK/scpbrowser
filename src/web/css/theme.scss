@@ -20,36 +20,3 @@ $text_color: rgb(207, 207, 209);
 $back_color: rgb(13, 17, 23);
 $release_color: rgb(30, 34, 40);
 $hover_color: rgb(10, 14, 20);
-
-%theme-div
-{
-  background-color: $back_color;
-  color: $text_color;
-}
-
-%theme-link
-{
-  text-decoration: none;
-  color: $text_color;
-}
-
-%theme-button
-{
-  color: $text_color;
-  background-color: $release_color;
-  transition-property: background-color;
-  transition-duration: 300ms;
-  transition-timing-function: ease-out;
-
-  &:hover
-  {
-    background-color: $hover_color;
-  }
-}
-
-%flexbox
-{
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}

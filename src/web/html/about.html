@@ -23,112 +23,66 @@ Author: MarcosHCK
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <title>SCP Foundation - About</title>
-    <link rel="stylesheet" href="scss:///css/about.scss" type="text/css" charset="utf-8" media="all" />
+    <link rel="stylesheet" href="resources:///css/about.css" type="text/css" charset="utf-8" media="all" />
     <?lua include ('lua.head') ?>
   </head>
   <body>
     <?lua include ('lua.body') ?>
+    <?lua body.headerbar () ?>
     <?lua body.begin () ?>
 
-      <?lua body.headerbar () ?>
       <?lua local config = require ('config') ?>
-
-        <div class="scp-content-wrapper">
-          <div class="scp-about scp-marble-tablet">
-
-            <div class="centerable">
-              <h1 class="compact" style="margin-bottom: 0px; font-weight: bolder;">Scp Browser</h1>
-              <h4 class="compact" style="margin-top: 0px;">
-                <?lua io.write (('%s %s'):format (config.PACKAGE_VERSION, config.PACKAGE_RELEASE)) ?>
-              </h4>
-              <h4 class="compact">
-                <span>Scp Foundation database official Browser</span>
-                <br />
-                <span>Browse through SCPNET like never before. Approved for use by all clearance levels from Level 1 to 4</span>
-              </h4>
-              <a href="<?lua io.write (config.PACKAGE_URL) ?>">
-                <h4 class="compact">Vist our website here</h4>
-              </a>
-
-              <?lua
-                local dumpres
-                do
-                  local config = require ('config')
-                  local lgi = require ('lgi')
-                  local GLib = lgi.GLib
-                  local Gio = lgi.Gio
-
-                  dumpres = function (name)
-                    local file = config.resources:get_child (name)
-                    local fstream = file:read ()
-                    local stream = Gio.DataInputStream.new (fstream)
-
-                    io.stdout:write ('<p>')
-
-                    repeat
-                      local line = stream:read_line_utf8 ()
-                      if (line ~= nil) then
-                        if (line == '') then
-                          io.stdout:write ('</p><p>')
-                        else
-                          local info = GLib.markup_escape_text (line, -1)
-                          io.stdout:write (('<span>%s </span>'):format (info))
-                        end
-                      end
-                    until (line == nil)
-
-                    io.stdout:write ('</p>')
-                  end
-                end
-              ?>
-              
-              <div class="scp-expandable">
-                <h4 class="title compact">
-                  <span>Credits</span>
-                </h4>
-                <div class="content">
-                  <?lua dumpres ('res/authors') ?>
-                </div>
-              </div>
-              <div class="scp-expandable">
-                <h4 class="title compact">
-                  <span>Copyright</span>
-                </h4>
-                <div class="content">
-                  <?lua dumpres ('res/copying') ?>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-    <?lua body.finish () ?>
-    <style>
-
       <?lua
-        local tags = {}
-        local class = 'compact'
+        local dumpres
+        do
+          local config = require ('config')
+          local lgi = require ('lgi')
+          local GLib = lgi.GLib
+          local Gio = lgi.Gio
 
-        table.insert (tags, 'p')
-        table.insert (tags, 'span')
+          dumpres = function (name)
+            local file = config.resources:get_child (name)
+            local fstream = file:read ()
+            local stream = Gio.DataInputStream.new (fstream)
 
-        for i = 1, 5 do
-          table.insert (tags, ('h%i'):format (i))
-        end
+            io.stdout:write ('<p>')
 
-        for i, tag in ipairs (tags) do
-          if (i > 1) then
-            io.write (', ')
+            repeat
+              local line = stream:read_line_utf8 ()
+              if (line ~= nil) then
+                if (line == '') then
+                  io.stdout:write ('</p><p>')
+                else
+                  local info = GLib.markup_escape_text (line, -1)
+                  io.stdout:write (('<span>%s </span>'):format (info))
+                end
+              end
+            until (line == nil)
+
+            io.stdout:write ('</p>')
           end
-          io.write (('%s.%s'):format (tag, class))
         end
       ?>
-        {
-          margin-top: 5px;
-          margin-bottom: 5px;
-        }
 
-    </style>
+      <div class="container my-5">
+        <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
+          <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+            <div class="col-10 col-sm-8 col-lg-6">
+              <img src="res/logo_symbolic.svg" />
+            </div>
+            <div class="col-lg-6">
+              <h1 class="display-5 fw-bold lh-1 mb-3">About SCP Browser</h1>
+              <p class="lead">
+                <span>
+                  Scp Browser is an official tool issued by IT Department, developed by a team of highly cualified reserchers and dedicated AIs.
+                  Is approved for use by all clearance level from 1 to 4. Browse through SCPNET like never before
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <?lua body.finish () ?>
   </body>
 </html>

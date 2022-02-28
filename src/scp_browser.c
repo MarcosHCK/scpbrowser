@@ -109,8 +109,7 @@ on_uri_scheme_request_resources (WebKitURISchemeRequest* request, gpointer pself
   on_uri_scheme_request_resource (request, path, pself);
 }
 
-IMPLEMENT_CACHED_ON_REQUEST (jhtml, jhtmls, _scp_browser_compile_jhtml);
-IMPLEMENT_CACHED_ON_REQUEST (scss, scsses, _scp_browser_compile_scss);
+IMPLEMENT_ON_REQUEST (jhtml, _scp_browser_compile_jhtml);
 
 static void
 on_uri_scheme_request_scp (WebKitURISchemeRequest* request, gpointer pself)
@@ -175,7 +174,6 @@ on_initialize_web_extensions (WebKitWebContext* context, ScpBrowser* browser)
     {
       g_variant_builder_add (&builder2, "s", "resource");
       g_variant_builder_add (&builder2, "s", "jhtml");
-      g_variant_builder_add (&builder2, "s", "scss");
       g_variant_builder_add (&builder2, "s", "scp");
     }
     variant =
@@ -227,7 +225,6 @@ scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancella
 
   webkit_web_context_register_uri_scheme (self->context, "resources", on_uri_scheme_request_resources, self, NULL);
   webkit_web_context_register_uri_scheme (self->context, "jhtml", on_uri_scheme_request_jhtml, self, NULL);
-  webkit_web_context_register_uri_scheme (self->context, "scss", on_uri_scheme_request_scss, self, NULL);
   webkit_web_context_register_uri_scheme (self->context, "scp", on_uri_scheme_request_scp, self, NULL);
 
   g_signal_connect
@@ -280,10 +277,6 @@ static void
 scp_browser_class_finalize (GObject* pself)
 {
   ScpBrowser* self = SCP_BROWSER (pself);
-  g_hash_table_remove_all (self->jhtmls);
-  g_hash_table_unref (self->jhtmls);
-  g_hash_table_remove_all (self->scsses);
-  g_hash_table_unref (self->scsses);
 G_OBJECT_CLASS (scp_browser_parent_class)->finalize (pself);
 }
 
@@ -291,8 +284,6 @@ static void
 scp_browser_class_dispose (GObject* pself)
 {
   ScpBrowser* self = SCP_BROWSER (pself);
-  g_hash_table_remove_all (self->jhtmls);
-  g_hash_table_remove_all (self->scsses);
 G_OBJECT_CLASS (scp_browser_parent_class)->dispose (pself);
 }
 
@@ -323,29 +314,7 @@ scp_browser_class_init (ScpBrowserClass* klass)
 }
 
 static void
-scp_browser_init (ScpBrowser* self)
-{
-  /*
-   * Compiled SCSS files cache
-   *
-   */
-
-  self->jhtmls =
-  g_hash_table_new_full
-  (g_str_hash,
-   g_str_equal,
-   g_free,
-   (GDestroyNotify)
-   g_bytes_unref);
-
-  self->scsses =
-  g_hash_table_new_full
-  (g_str_hash,
-   g_str_equal,
-   g_free,
-   (GDestroyNotify)
-   g_bytes_unref);
-}
+scp_browser_init (ScpBrowser* self) { }
 
 /*
  * Object methods

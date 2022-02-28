@@ -759,6 +759,39 @@ create_macros (lua_State* L)
   lua_settable (L, -3);
 }
 
+static int
+__gc_table (lua_State* L)
+{
+  GStringChunk** ptable =
+  luaL_checkudata (L, 1, SKETCH_TABLE);
+  g_clear_pointer (ptable, g_string_chunk_free);
+return 0;
+}
+
+static int
+__gc_slices (lua_State* L)
+{
+  gchar*** pslices =
+  luaL_checkudata (L, 1, SKETCH_SLICES);
+  g_clear_pointer (pslices, g_free);
+return 0;
+}
+
+static int
+create_metas (lua_State* L)
+{
+  luaL_newmetatable (L, SKETCH_TABLE);
+  lua_pushliteral (L, "__gc");
+  lua_pushcfunction (L, __gc_table);
+  lua_settable (L, -3);
+  lua_pop (L, 1);
+  luaL_newmetatable (L, SKETCH_SLICES);
+  lua_pushliteral (L, "__gc");
+  lua_pushcfunction (L, __gc_slices);
+  lua_settable (L, -3);
+  lua_pop (L, 1);
+}
+
 static void
 patch_global (lua_State* L)
 {
@@ -837,6 +870,7 @@ luaopen_liblimr (lua_State* L)
   lua_pushvalue (L, -2);
   lua_settable (L, LUA_REGISTRYINDEX);
   create_macros (L);
+  create_metas (L);
   set_info (L);
   patch_library (L);
 #if DEBUG == 1
