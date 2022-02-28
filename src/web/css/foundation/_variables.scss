@@ -16,16 +16,10 @@
  * along with scpbrowser.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+$text_color: rgb(207, 207, 209);
+$back_color: rgb(13, 17, 23);
+$release_color: rgb(30, 34, 40);
+$hover_color: rgb(10, 14, 20);
 
-/* Import variables */
-@import "foundation/variables";
-
-/* Bootstrap main files */
-@import "bootstrap/bootstrap.scss";
-
-/* Globals */
-@import "foundation/global";
-
-/* Components */
-@import "foundation/components/buttons";
-@import "foundation/components/navbar";
+@import "variables/colors";
+@import "variables/typography";

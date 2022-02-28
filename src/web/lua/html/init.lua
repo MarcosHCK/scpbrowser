@@ -1,5 +1,5 @@
-@charset "UTF-8";
-/* Copyright 2021-2025 MarcosHCK
+--[[
+ * Copyright 2021-2025 MarcosHCK
  * This file is part of scpbrowser.
  *
  * scpbrowser is free software: you can redistribute it and/or modify
@@ -15,17 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with scpbrowser.  If not, see <http://www.gnu.org/licenses/>.
  *
- */
-
-/* Import variables */
-@import "foundation/variables";
-
-/* Bootstrap main files */
-@import "bootstrap/bootstrap.scss";
-
-/* Globals */
-@import "foundation/global";
-
-/* Components */
-@import "foundation/components/buttons";
-@import "foundation/components/navbar";
+ *]]
+local html = {}
+return html

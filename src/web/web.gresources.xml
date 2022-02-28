@@ -57,16 +57,17 @@ Author: MarcosHCK
      *
     -->
 
+      <file>lua/html/accordion.lua</file>
+      <file>lua/html/body.lua</file>
+      <file>lua/html/callable.lua</file>
+      <file>lua/html/head.lua</file>
+      <file>lua/html/init.lua</file>
+      <file>lua/html/navbar.lua</file>
+      <file>lua/html/tag.lua</file>
+      <file>lua/html/utils.lua</file>
+      <file>lua/proc/resources.lua</file>
       <file>lua/patch.lua</file>
-
-    <!--
-     *
-     * Lua+HTML scripts
-     *
-    -->
-
-      <file>lua/body.lua</file>
-      <file>lua/head.lua</file>
+      <file>lua/version.lua</file>
 
     <!--
      *
@@ -76,6 +77,7 @@ Author: MarcosHCK
 
       <file alias="res/authors">../../AUTHORS</file>
       <file alias="res/copying">../../COPYING</file>
+      <file>res/foundation.jpg</file>
       <file>res/logo_symbolic.svg</file>
       <file>res/marble.png</file>
 

@@ -18,15 +18,11 @@
  *]]
 local limr = ...
 local config = {}
+local lgi = require ('lgi')
 local macros = limr.macros
 
 -- Keep sync
 local GRESNAME = '/org/hck/scpbrowser'
-
-do
-  macros.path =
-  table.concat ({macros.path, 'resource://' .. GRESNAME .. '/?.lua' }, ';')
-end
 
 do
   config.DEBUG = @DEBUG@
@@ -43,7 +39,6 @@ do
   config.PACKAGE_VERSION_MAYOR = "@PACKAGE_VERSION_MAYOR@"
   config.PACKAGE_VERSION_MICRO = "@PACKAGE_VERSION_MICRO@"
   config.PACKAGE_VERSION_MINOR = "@PACKAGE_VERSION_MINOR@"
-  config.resources = (require ('lgi')).Gio.File.new_for_uri ('resource://' .. GRESNAME)
   package.loaded.config = config
 end
 
@@ -53,4 +48,65 @@ do
     about = 'scp:///about',
     home = 'scp:///home',
   }
+
+  local root = lgi.Gio.File.new_for_uri ('resources://' .. GRESNAME)
+
+  config.resources =
+  {
+    root = root,
+    icon = (root:get_child ('res/logo_symbolic.svg')):get_uri (),
+  }
+end
+
+do
+  local respath = config.resources.root:get_uri ()
+  local path1 = respath .. '/lua/?.lua'
+  local path2 = respath .. '/lua/?/init.lua'
+  local fullpath = table.concat ({ path1, path2 }, ';')
+
+  macros.path =
+  table.concat ({macros.path, fullpath }, ';')
+  local searchers = package.searchers or package.loaders
+
+  local packconfig = {}
+  local packpath = fullpath
+  do
+    local iterator =
+    package.config:gmatch ('[^\r\n]+')
+
+    for line in iterator do
+      table.insert (packconfig, line)
+    end
+  end
+
+  table.insert (searchers, function (name)
+    checkArg (1, name, 'string')
+    local tokenizer = ('[^%%%c]+'):format (packconfig [2]:byte ())
+    local former = ('%%%c'):format (packconfig [3]:byte ())
+    local messages = {}
+
+    for match in packpath:gmatch (tokenizer) do
+      local partial = name:gsub ('%.', packconfig [1])
+      local path = match:gsub (former, partial)
+
+      do
+        local file = lgi.Gio.File.new_for_uri (path)
+        if (file:query_exists () == true) then
+          local bytes = file:load_contents ()
+          return function ()
+            local func, reason = load (bytes, '=' .. file:get_basename (), 'bt')
+            if (not func) then
+              error (reason)
+            else
+              return func ()
+            end
+          end
+        else
+          table.insert (messages, '\r\n\tno file ')
+          table.insert (messages, file:get_uri ())
+        end
+      end
+    end
+  return (#messages > 0) and (table.concat (messages))
+  end)
 end

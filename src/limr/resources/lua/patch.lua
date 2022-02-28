@@ -79,6 +79,15 @@ do
     xpcall = xpcall,
   }
 
+  do
+    local success, jit = pcall (require, 'jit')
+    if (success) then
+      environ._VERSION = jit.version
+    else
+      environ._VERSION = _VERSION
+    end
+  end
+
   package.loaded.limr = limr
 
   setmetatable (limr,
@@ -100,5 +109,15 @@ do
     print ('Missing lgi installation, you may expect some errors')
   else
     package.loaded.lgi = lgi
+  end
+end
+
+-- Detect ffi installation
+do
+  local success, ffi = pcall (require, 'ffi')
+  if (not success) then
+    print ('Missing ffi installation, you may expect some errors')
+  else
+    package.loaded.ffi = ffi
   end
 end

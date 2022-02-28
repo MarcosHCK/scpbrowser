@@ -26,7 +26,7 @@ G_GNUC_INTERNAL
 const gchar*
 g_file_peek_uri (GFile* file)
 {
-  g_return_if_fail (G_IS_FILE (file));
+  g_return_val_if_fail (G_IS_FILE (file), NULL);
   const gchar* cached = NULL;
         gchar* uri = NULL;
 
@@ -59,4 +59,58 @@ gboolean
   if (lua_isnoneornil (L, idx))
     return FALSE;
 return TRUE;
+}
+
+/*
+ * Version
+ *
+ */
+
+static guint
+uint_parse (const gchar* str, guint _base)
+{
+	guint result = 0U;
+	g_return_val_if_fail (str != NULL, 0U);
+	result = (guint) strtoul (str, NULL, (gint) _base);
+	return result;
+}
+
+static guint _mayor_version = -1;
+static guint _minor_version = -1;
+static guint _micro_version = -1;
+
+G_MODULE_EXPORT
+guint
+limr_get_major_version (void)
+{
+	guint result = 0U;
+	if (G_UNLIKELY (_mayor_version == ((guint) -1)))
+    {
+		  _mayor_version = uint_parse (PACKAGE_VERSION_MAYOR, (guint) 0);
+	  }
+return _mayor_version;
+}
+
+G_MODULE_EXPORT
+guint
+limr_get_minor_version (void)
+{
+	guint result = 0U;
+	if (G_UNLIKELY (_minor_version == ((guint) -1)))
+    {
+		_minor_version = uint_parse (PACKAGE_VERSION_MINOR, (guint) 0);
+	  }
+return _minor_version;
+}
+
+G_MODULE_EXPORT
+guint
+limr_get_micro_version (void)
+{
+	guint result = 0U;
+	if (G_UNLIKELY (_micro_version == ((guint) -1)))
+    {
+		_micro_version = uint_parse (PACKAGE_VERSION_MICRO, (guint) 0);
+	  }
+return _micro_version;
 }

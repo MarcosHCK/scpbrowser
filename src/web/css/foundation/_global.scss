@@ -17,15 +17,12 @@
  *
  */
 
-/* Import variables */
-@import "foundation/variables";
+html
+{
+  scroll-padding-top: calc(4.5rem - 1px);
+}
 
-/* Bootstrap main files */
-@import "bootstrap/bootstrap.scss";
-
-/* Globals */
-@import "foundation/global";
-
-/* Components */
-@import "foundation/components/buttons";
-@import "foundation/components/navbar";
+body
+{
+  letter-spacing: $base-letter-spacing;
+}

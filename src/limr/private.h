@@ -54,6 +54,16 @@ G_MODULE_EXPORT
 int
 luaopen_liblimr (lua_State* L);
 
+G_MODULE_EXPORT
+guint
+limr_get_major_version (void) G_GNUC_CONST;
+G_MODULE_EXPORT
+guint
+limr_get_minor_version (void) G_GNUC_CONST;
+G_MODULE_EXPORT
+guint
+limr_get_micro_version (void) G_GNUC_CONST;
+
 #if __cplusplus
 }
 #endif // __cplusplus

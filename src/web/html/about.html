@@ -24,65 +24,98 @@ Author: MarcosHCK
   <head>
     <title>SCP Foundation - About</title>
     <link rel="stylesheet" href="resources:///css/about.css" type="text/css" charset="utf-8" media="all" />
-    <?lua include ('lua.head') ?>
+    <?lua local body = require ('html.body') ?>
+    <?lua local config = require ('config') ?>
+    <?lua local head = require ('html.head') ?>
+    <?lua local navbar = require ('html.navbar') ?>
+    <?lua head.header () ?>
   </head>
   <body>
-    <?lua include ('lua.body') ?>
-    <?lua body.headerbar () ?>
+    <?lua do
+        local items
+        items =
+        {
+          function () navbar.link ('Home', config.links.home) end,
+          function () navbar.link ('About', config.links.about) end,
+        }
+
+        navbar.spawn (_, items)
+      end ?>
     <?lua body.begin () ?>
 
-      <?lua local config = require ('config') ?>
-      <?lua
-        local dumpres
-        do
-          local config = require ('config')
-          local lgi = require ('lgi')
-          local GLib = lgi.GLib
-          local Gio = lgi.Gio
-
-          dumpres = function (name)
-            local file = config.resources:get_child (name)
-            local fstream = file:read ()
-            local stream = Gio.DataInputStream.new (fstream)
-
-            io.stdout:write ('<p>')
-
-            repeat
-              local line = stream:read_line_utf8 ()
-              if (line ~= nil) then
-                if (line == '') then
-                  io.stdout:write ('</p><p>')
-                else
-                  local info = GLib.markup_escape_text (line, -1)
-                  io.stdout:write (('<span>%s </span>'):format (info))
-                end
-              end
-            until (line == nil)
-
-            io.stdout:write ('</p>')
-          end
-        end
-      ?>
-
-      <div class="container my-5">
+      <section class="container my-5">
         <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
-          <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
-            <div class="col-10 col-sm-8 col-lg-6">
-              <img src="res/logo_symbolic.svg" />
-            </div>
-            <div class="col-lg-6">
-              <h1 class="display-5 fw-bold lh-1 mb-3">About SCP Browser</h1>
-              <p class="lead">
-                <span>
-                  Scp Browser is an official tool issued by IT Department, developed by a team of highly cualified reserchers and dedicated AIs.
-                  Is approved for use by all clearance level from 1 to 4. Browse through SCPNET like never before
-                </span>
-              </p>
-            </div>
+          <div class="col-lg-7 p-3 p-lg-5 pt-lg-3">
+            <h1 class="display-4 fw-bold lh-1">About SCP Browser</h1>
+            <p class="lead">
+              <span>
+                Scp Browser is an official tool issued by IT Department, developed by a team of highly cualified reserchers and dedicated AIs.
+                Is approved for use by all clearance level from 1 to 4. Browse through SCPNET like never before
+              </span>
+            </p>
+
+            <?lua
+              local items
+              local versions
+              do
+                local version = require ('version')
+                local config = require ('config')
+                versions =
+                {
+                  ('%s %s %s'):format (
+                    config.PACKAGE_NAME,
+                    config.PACKAGE_VERSION,
+                    config.PACKAGE_RELEASE),  -- Us
+                  version.gio,      -- Gio
+                  version.glib,     -- GLib
+                  version.gmodule,  -- GModule
+                  version.gobject,  -- GObject
+                  version.gtk,      -- Gtk
+                  version.limr,     -- Limr
+                  _G._VERSION,      -- Lua
+                  version.soup,     -- LibSoup
+                  version.webkit,   -- WebKit2
+                }
+
+                function techical ()
+              ?>
+                  <h5>Components</h5>
+                  <ul>
+            <?lua
+                  for _, version in ipairs (versions) do
+              ?>
+                    <li>
+                      <p>
+                        <span><?lua io.write (version) ?></span>
+                      </p>
+                    </li>
+            <?lua
+                  end
+              ?>
+                  </ul>
+            <?lua
+                end
+
+                items =
+                {
+                  { title = 'Technical info', content = techical },
+                  { title = 'Authors', content = function () require ('proc.resources').dump ('res/authors') end },
+                  { title ='Translators', content = function () require ('proc.resources').dump ('res/authors') end },
+                  { title ='Art works by', content = function () require ('proc.resources').dump ('res/authors') end },
+                }
+              end
+
+              require ('html.accordion').spawn (items)
+            ?>
+
+          </div>
+          <div class="col-lg-4 offset-lg-1 p-0 overflow-hidden shadow-lg">
+            <img class="rounded-lg-3" src="resources:///res/foundation.jpg" alt="" width="610">
           </div>
         </div>
-      </div>
+      </section>
 
     <?lua body.finish () ?>
+    <?lua head.footer () ?>
   </body>
 </html>

@@ -1,5 +1,5 @@
-@charset "UTF-8";
-/* Copyright 2021-2025 MarcosHCK
+--[[
+ * Copyright 2021-2025 MarcosHCK
  * This file is part of scpbrowser.
  *
  * scpbrowser is free software: you can redistribute it and/or modify
@@ -15,8 +15,30 @@
  * You should have received a copy of the GNU General Public License
  * along with scpbrowser.  If not, see <http://www.gnu.org/licenses/>.
  *
- */
-$text_color: rgb(207, 207, 209);
-$back_color: rgb(13, 17, 23);
-$release_color: rgb(30, 34, 40);
-$hover_color: rgb(10, 14, 20);
+ *]]
+local lgi = require ('lgi')
+local utils = {}
+local GLib = lgi.GLib
+
+do
+  local idsn = 1
+
+  function utils.uniqueid ()
+    local nxt = idsn
+    idsn = idsn + 1
+  return ('scp-uniqueid-%i'):format (nxt)
+  end
+
+  function utils.escape (text)
+    checkArg (1, text, 'string')
+  return GLib.markup_escape_text (text, text:len ())
+  end
+
+  function utils.printf (fmt, ...)
+    checkArg (1, fmt, 'string')
+    local output = fmt:format (...)
+    io.stdout:write (output)
+  return output
+  end
+end
+return utils

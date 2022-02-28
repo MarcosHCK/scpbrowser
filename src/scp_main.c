@@ -28,7 +28,7 @@ pointer_ensure (gpointer pobject)
 }
 
 int
-main(int argc, char* argv[])
+main (int argc, char* argv[])
 {
   GApplication* app = NULL;
   gboolean success = TRUE;
