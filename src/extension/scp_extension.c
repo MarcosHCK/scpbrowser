@@ -78,11 +78,41 @@ scp_extension_init (ScpExtension* self)
  *
  */
 
+static gboolean
+on_send_request (WebKitWebPage* web_page, WebKitURIRequest* request, WebKitURIResponse* redirected_response, ScpExtension* self)
+{
+  const gchar* uri = NULL;
+  gchar* uri_ = NULL;
+  SoupURI* ext = NULL;
+
+  uri = webkit_uri_request_get_uri (request);
+  ext = soup_uri_new (uri);
+
+  if (!g_strcmp0 (ext->scheme, "resource"))
+    {
+      soup_uri_set_scheme (ext, "scpres");
+
+      uri_ = soup_uri_to_string (ext, FALSE);
+      webkit_uri_request_set_uri (request, uri_);
+      g_free (uri_);
+    }
+  soup_uri_free (ext);
+return FALSE;
+}
+
 static void
 on_page_created (WebKitWebExtension  *extension,
                  WebKitWebPage       *page,
                  ScpExtension        *self)
 {
+  g_signal_connect_data
+  (page,
+   "send-request",
+   G_CALLBACK (on_send_request),
+   g_object_ref (self),
+   (GClosureNotify)
+   g_object_unref,
+   0);
 }
 
 static void

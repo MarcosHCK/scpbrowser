@@ -49,7 +49,7 @@ do
     home = 'scp:///home',
   }
 
-  local root = lgi.Gio.File.new_for_uri ('resources://' .. GRESNAME)
+  local root = lgi.Gio.File.new_for_uri ('resource://' .. GRESNAME)
 
   config.resources =
   {

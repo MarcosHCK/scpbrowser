@@ -49,7 +49,7 @@ G_DEFINE_TYPE_WITH_CODE
   scp_browser_g_initable_iface_init));
 
 static void
-on_uri_scheme_request_resource_fullpath (WebKitURISchemeRequest* request, const gchar* path, gpointer pself)
+on_uri_scheme_request_scpres_fullpath (WebKitURISchemeRequest* request, const gchar* path, gpointer pself)
 {
   GError* tmp_err = NULL;
   GBytes* bytes = NULL;
@@ -100,13 +100,13 @@ on_uri_scheme_request_resource_fullpath (WebKitURISchemeRequest* request, const 
 }
 
 static void
-on_uri_scheme_request_resource (WebKitURISchemeRequest* request, gpointer pself)
+on_uri_scheme_request_scpres (WebKitURISchemeRequest* request, gpointer pself)
 {
   const gchar* path = NULL;
 
   path =
-  webkit_uri_scheme_request_get_path(request);
-  on_uri_scheme_request_resource_fullpath (request, path, pself);
+  webkit_uri_scheme_request_get_path (request);
+  on_uri_scheme_request_scpres_fullpath (request, path, pself);
 }
 
 IMPLEMENT_ON_REQUEST (jhtml, _scp_browser_compile_jhtml);
@@ -160,7 +160,7 @@ on_initialize_web_extensions (WebKitWebContext* context, ScpBrowser* browser)
 #if DEVELOPER == 1
   webkit_web_context_set_web_extensions_directory (context, ABSTOPBUILDDIR "/src/extension/.libs/");
 #else // !DEVELOPER
-  webkit_web_context_set_web_extensions_directory(context, PKGLIBDIR);
+  webkit_web_context_set_web_extensions_directory (context, PKGLIBDIR);
 #endif // DEVELOPER
 
   /*
@@ -172,7 +172,7 @@ on_initialize_web_extensions (WebKitWebContext* context, ScpBrowser* browser)
   {
     g_variant_builder_init (&builder2, G_VARIANT_TYPE_STRING_ARRAY);
     {
-      g_variant_builder_add (&builder2, "s", "resources");
+      g_variant_builder_add (&builder2, "s", "scpres");
       g_variant_builder_add (&builder2, "s", "jhtml");
       g_variant_builder_add (&builder2, "s", "scp");
     }
@@ -223,8 +223,7 @@ scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancella
   g_object_new (WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", self->website_data, NULL);
   webkit_web_context_set_cache_model (self->context, WEBKIT_CACHE_MODEL_DOCUMENT_BROWSER);
 
-  webkit_web_context_register_uri_scheme (self->context, "resources", on_uri_scheme_request_resource, self, NULL);
-  webkit_web_context_register_uri_scheme (self->context, "resource", on_uri_scheme_request_resource, self, NULL);
+  webkit_web_context_register_uri_scheme (self->context, "scpres", on_uri_scheme_request_scpres, self, NULL);
   webkit_web_context_register_uri_scheme (self->context, "jhtml", on_uri_scheme_request_jhtml, self, NULL);
   webkit_web_context_register_uri_scheme (self->context, "scp", on_uri_scheme_request_scp, self, NULL);
 
@@ -350,18 +349,21 @@ scp_browser_get_sanboxed (ScpBrowser* browser)
 return webkit_web_context_get_sandbox_enabled (browser->context);
 }
 
+#define REQUEST "resource-request"
+
 WebKitWebView*
 scp_browser_create_view (ScpBrowser* browser)
 {
   g_return_val_if_fail (SCP_IS_BROWSER (browser), NULL);
   gboolean is_ephemeral = FALSE;
+  WebKitWebView* view = NULL;
 
   g_object_get
   (browser->website_data,
    "is-ephemeral", &is_ephemeral,
    NULL);
 
-  return
+  view =
   (WebKitWebView*)
   g_object_ref_sink
   (g_object_new
@@ -372,4 +374,5 @@ scp_browser_create_view (ScpBrowser* browser)
     "user-content-manager", browser->user_content,
     "web-context", browser->context,
     NULL));
+return view;
 }
