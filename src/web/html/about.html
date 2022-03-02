@@ -27,9 +27,25 @@ Author: MarcosHCK
     <?lua local config = require ('config') ?>
     <?lua local head = require ('html.head') ?>
     <?lua local navbar = require ('html.navbar') ?>
+    <?lua local tag = require ('html.tag') ?>
     <?lua local res = require ('proc.resources') ?>
     <?lua head.header () ?>
-    <link rel="stylesheet" href="<?lua res.link ('res/foundation.jpg') ?>" type="text/css" charset="utf-8" media="all" />
+
+    <?lua do
+      local items
+      items =
+      {
+        type = 'text/css',
+        rel = 'stylesheet',
+        charset = 'utf-8',
+        media = 'all',
+        href = function ()
+          res.link ('css/about.css')
+        end,
+      }
+
+      tag.link (items)
+    end ?>
   </head>
   <body>
     <?lua do

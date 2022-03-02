@@ -17,6 +17,7 @@
  *
  *]]
 local config = require ('config')
+local callable = require ('html.callable')
 local utils = require ('html.utils')
 local tag = {}
 
@@ -27,44 +28,19 @@ do
   tag_mt =
   {
     __index = function (tag, tagname)
-      local opener = '<' .. tagname .. ' '
+      local opener = '<' .. tagname
       local closer = '</' .. tagname .. '>'
 
       local func = function (attrs, filler)
         checkArg (1, attrs, 'table')
-
-        if (type (filler) == 'nil') then
-          filler = nullfunc
-        elseif (type (filler) == 'thread') then
-          if (coroutine.status (filler) ~= 'dead') then
-            filler = function ()
-              coroutine.resume (filler)
-            end
-          else
-            error ('can\'t resume a dead coroutine')
-          end
-        elseif (type (filler) == 'table') then
-          local mt = getmetatable (filler)
-          if (type (mt) == 'table') then
-            local method = mt.__call
-            if (not method) then
-              error ('non callable source')
-            end
-          else
-            error ('non callable source')
-          end
-        elseif (type (filler) ~= 'function') then
-          local value = filler
-          filler = function ()
-            local value = utils.escape (value)
-            utils.printf ('%s', value)
-          end
-        end
+        filler = callable.create (filler)
 
         utils.printf (opener)
         for key, value in pairs (attrs) do
-          local value = utils.escape (value)
-          utils.printf ('%s="%s"', key, value)
+          value = callable.create (value)
+          utils.printf (' %s="', key)
+          value ()
+          utils.printf ('"')
         end
 
         utils.printf (' >')
