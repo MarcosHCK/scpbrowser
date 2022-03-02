@@ -151,7 +151,7 @@ namespace Scp
       notebook.switch_page (page, page_n);
     }
 
-    private bool on_load_failed(WebKit.WebView webview, WebKit.LoadEvent event, string failing_uri, GLib.Error error)
+    private bool on_load_failed (WebKit.WebView webview, WebKit.LoadEvent event, string failing_uri, GLib.Error error)
     {
       if (error.code == WebKit.NetworkError.CANCELLED)
         return false;

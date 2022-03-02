@@ -105,7 +105,7 @@ namespace Scp
 
     public override void activate ()
     {
-      GLib.File home = GLib.File.new_for_uri ("scpbrowser:///home");
+      GLib.File home = GLib.File.new_for_uri ("scp:///home");
       GLib.File[] vector = new GLib.File[1] {home};
       this.open (vector, "url");
     }
