@@ -194,9 +194,10 @@ on_initialize_web_extensions (WebKitWebContext* context, ScpBrowser* browser)
 static gboolean
 scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancellable, GError** error)
 {
+  ScpBrowser* self = SCP_BROWSER (pself);
+  WebKitSecurityManager* secure = NULL;
   gboolean success = TRUE;
   GError* tmp_err = NULL;
-  ScpBrowser* self = SCP_BROWSER (pself);
 
   self->website_data =
   (WebKitWebsiteDataManager*)
@@ -219,13 +220,19 @@ scp_browser_g_initable_iface_init_sync (GInitable* pself, GCancellable* cancella
 
   self->user_content = (WebKitUserContentManager*)
   g_object_new (WEBKIT_TYPE_USER_CONTENT_MANAGER, NULL);
+
   self->context = (WebKitWebContext*)
   g_object_new (WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", self->website_data, NULL);
   webkit_web_context_set_cache_model (self->context, WEBKIT_CACHE_MODEL_DOCUMENT_BROWSER);
 
+  secure = webkit_web_context_get_security_manager (self->context);
+
   webkit_web_context_register_uri_scheme (self->context, "scpres", on_uri_scheme_request_scpres, self, NULL);
+  webkit_security_manager_register_uri_scheme_as_local (secure, "scpres");
   webkit_web_context_register_uri_scheme (self->context, "jhtml", on_uri_scheme_request_jhtml, self, NULL);
+  webkit_security_manager_register_uri_scheme_as_local (secure, "jhtml");
   webkit_web_context_register_uri_scheme (self->context, "scp", on_uri_scheme_request_scp, self, NULL);
+  webkit_security_manager_register_uri_scheme_as_local (secure, "scp");
 
   g_signal_connect
   (self->context,
