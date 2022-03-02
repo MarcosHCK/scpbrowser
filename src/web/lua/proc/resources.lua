@@ -47,6 +47,14 @@ do
   return bytes
   end
 
+  function resources.link (name)
+    checkArg (1, name, 'string')
+    local file = folder:get_child (name)
+    local uri = file:get_uri ()
+    local uri = utils.escape (uri)
+    utils.printf ('%s', uri)
+  end
+
   function resources.dump (name, open_closure, line_closure, close_closure)
     checkArg (1, name, 'string')
     checkArg (2, open_closure, 'function', 'thread', 'table', 'nil')

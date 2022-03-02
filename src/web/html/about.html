@@ -23,12 +23,13 @@ Author: MarcosHCK
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <title>SCP Foundation - About</title>
-    <link rel="stylesheet" href="resources:///css/about.css" type="text/css" charset="utf-8" media="all" />
     <?lua local body = require ('html.body') ?>
     <?lua local config = require ('config') ?>
     <?lua local head = require ('html.head') ?>
     <?lua local navbar = require ('html.navbar') ?>
+    <?lua local res = require ('proc.resources') ?>
     <?lua head.header () ?>
+    <link rel="stylesheet" href="<?lua res.link ('res/foundation.jpg') ?>" type="text/css" charset="utf-8" media="all" />
   </head>
   <body>
     <?lua do
@@ -110,7 +111,7 @@ Author: MarcosHCK
 
           </div>
           <div class="col-lg-4 offset-lg-1 p-0 overflow-hidden shadow-lg">
-            <img class="rounded-lg-3" src="resources:///res/foundation.jpg" alt="" width="610">
+            <img class="rounded-lg-3" src="<?lua res.link ('res/foundation.jpg') ?>" alt="" width="610">
           </div>
         </div>
       </section>
